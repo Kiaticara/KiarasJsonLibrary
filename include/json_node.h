@@ -2,8 +2,6 @@
 
 #include <stdbool.h>
 
-//TODO: Is it okay for double and bool to be pointers? Seems kind of awkward...
-
 struct ki_json_object;
 struct ki_json_array;
 
@@ -13,7 +11,7 @@ enum KI_JSON_NODE_TYPE
     KI_JSON_NODE_OBJECT = 1, //struct ki_json_object*
     KI_JSON_NODE_ARRAY = 2, //struct ki_json_array*
     KI_JSON_NODE_STRING = 3, //char*
-    KI_JSON_NODE_DOUBLE = 4, //double*
+    KI_JSON_NODE_NUMBER = 4, //double*
     KI_JSON_NODE_BOOL = 5 //bool*
 };
 
@@ -24,7 +22,27 @@ struct ki_json_node
     void* data;
 };
 
-//TODO: construction & destruction
+// Construction
+
+//Returns NULL on fail.
+struct ki_json_node* ki_json_node_create_from_object(struct ki_json_object* object);
+
+//Returns NULL on fail.
+struct ki_json_node* ki_json_node_create_from_array(struct ki_json_array* array);
+
+//Returns NULL on fail.
+struct ki_json_node* ki_json_node_create_from_string(char* string);
+
+//Returns NULL on fail.
+struct ki_json_node* ki_json_node_create_from_number(double number);
+
+//Returns NULL on fail.
+struct ki_json_node* ki_json_node_create_from_bool(bool boolean);
+
+//Creates a node with data == NULL and KI_JSON_NODE_NULL as type. Returns NULL on fail.
+struct ki_json_node* ki_json_node_create_null();
+
+// Get data
 
 //Returns NULL on fail.
 struct ki_json_object* ki_json_node_try_get_json_object(struct ki_json_node* node);
@@ -36,7 +54,14 @@ struct ki_json_array* ki_json_node_try_get_json_array(struct ki_json_node* node)
 char* ki_json_node_try_get_string(struct ki_json_node* node);
 
 //Returns NULL on fail.
-double* ki_json_node_try_get_double(struct ki_json_node* node);
+double* ki_json_node_try_get_number(struct ki_json_node* node);
 
 //Returns NULL on fail.
 bool* ki_json_node_try_get_bool(struct ki_json_node* node);
+
+bool ki_json_node_is_null(struct ki_json_node* node);
+
+// Destruction
+
+//Frees node, only frees data if it was a double or bool. Does not free given data like struct ki_json_object*, ki_json_array* or char*
+void ki_json_node_destroy(struct ki_json_node* node);
