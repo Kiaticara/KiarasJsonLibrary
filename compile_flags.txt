@@ -1,4 +1,0 @@
--xc
--Wall
--Wextra
--Iinclude
