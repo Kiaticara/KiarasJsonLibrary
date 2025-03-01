@@ -1,12 +1,12 @@
-if (NOT TARGET KiarasJsonParser)
-    message(FATAL_ERROR "Target is not KiarasJsonParser!")
+if (NOT TARGET KiarasJsonLibrary)
+    message(FATAL_ERROR "No target KiarasJsonLibrary!")
 endif()
 
-project(KiarasJsonParserExample C)
+project(KiarasJsonLibraryExample C)
 
 # Generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS true)
 
-add_executable(KiarasJsonParserExample "example.c")
+add_executable(KiarasJsonLibraryExample "example.c")
 
-target_link_libraries(KiarasJsonParserExample KiarasJsonParser)
+target_link_libraries(KiarasJsonLibraryExample KiarasJsonLibrary)

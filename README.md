@@ -1,4 +1,4 @@
-# Kiara's C Json Parser & Builder
+# Kiara's Json Library
 
 ## Building (using UNIX Makefiles)
 
