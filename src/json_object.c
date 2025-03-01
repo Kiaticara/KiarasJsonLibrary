@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include "ki_json/json_val_type.h"
 #include "ki_json/json_node.h"
 
 struct ki_json_object* ki_json_object_create(int capacity)
@@ -55,7 +56,7 @@ struct ki_json_object* ki_json_object_object_at(struct ki_json_object* json_obje
 {
     struct ki_json_node* node = ki_json_object_node_at(json_object, name);
 
-    if (node == NULL || node->type == KI_JSON_NODE_OBJECT)
+    if (node == NULL || node->type == KI_JSON_VAL_OBJECT)
         return NULL;
 
     return node->object;
@@ -66,7 +67,7 @@ struct ki_json_array* ki_json_object_array_at(struct ki_json_object* json_object
 {
     struct ki_json_node* node = ki_json_object_node_at(json_object, name);
 
-    if (node == NULL || node->type == KI_JSON_NODE_ARRAY)
+    if (node == NULL || node->type == KI_JSON_VAL_ARRAY)
         return NULL;
 
     return node->array;
@@ -77,7 +78,7 @@ char* ki_json_object_string_at(struct ki_json_object* json_object, const char* n
 {
     struct ki_json_node* node = ki_json_object_node_at(json_object, name);
 
-    if (node == NULL || node->type == KI_JSON_NODE_STRING)
+    if (node == NULL || node->type == KI_JSON_VAL_STRING)
         return NULL;
 
     return node->string;
@@ -88,7 +89,7 @@ double ki_json_object_number_at(struct ki_json_object* json_object, const char* 
 {
     struct ki_json_node* node = ki_json_object_node_at(json_object, name);
 
-    if (node == NULL || node->type == KI_JSON_NODE_NUMBER)
+    if (node == NULL || node->type == KI_JSON_VAL_NUMBER)
         abort();
 
     return node->number;
@@ -99,7 +100,7 @@ bool ki_json_object_bool_at(struct ki_json_object* json_object, const char* name
 {
     struct ki_json_node* node = ki_json_object_node_at(json_object, name);
 
-    if (node == NULL || node->type == KI_JSON_NODE_BOOL)
+    if (node == NULL || node->type == KI_JSON_VAL_BOOL)
         abort();
 
     return node->boolean;
@@ -107,46 +108,18 @@ bool ki_json_object_bool_at(struct ki_json_object* json_object, const char* name
 
 // Is
 
-bool ki_json_object_is_object(struct ki_json_object* json_object, const char* name)
+bool ki_json_object_at_is_type(struct ki_json_object* json_object, const char* name, enum KI_JSON_VAL_TYPE type)
 {
     struct ki_json_node* node = ki_json_object_node_at(json_object, name);
 
-    return (node != NULL && node->type == KI_JSON_NODE_OBJECT);
+    return (node != NULL && node->type == type);
 }
 
-bool ki_json_object_is_array(struct ki_json_object* json_object, const char* name)
+bool ki_json_object_at_is_type_or_null(struct ki_json_object* json_object, const char* name, enum KI_JSON_VAL_TYPE type)
 {
     struct ki_json_node* node = ki_json_object_node_at(json_object, name);
 
-    return (node != NULL && node->type == KI_JSON_NODE_ARRAY);
-}
-
-bool ki_json_object_is_string(struct ki_json_object* json_object, const char* name)
-{
-    struct ki_json_node* node = ki_json_object_node_at(json_object, name);
-
-    return (node != NULL && node->type == KI_JSON_NODE_STRING);
-}
-
-bool ki_json_object_is_number(struct ki_json_object* json_object, const char* name)
-{
-    struct ki_json_node* node = ki_json_object_node_at(json_object, name);
-
-    return (node != NULL && node->type == KI_JSON_NODE_NUMBER);
-}
-
-bool ki_json_object_is_bool(struct ki_json_object* json_object, const char* name)
-{
-    struct ki_json_node* node = ki_json_object_node_at(json_object, name);
-
-    return (node != NULL && node->type == KI_JSON_NODE_BOOL);
-}
-
-bool ki_json_object_is_null(struct ki_json_object* json_object, const char* name)
-{
-    struct ki_json_node* node = ki_json_object_node_at(json_object, name);
-
-    return (node != NULL && (node->type == KI_JSON_NODE_NULL || node->object == NULL));
+    return (node != NULL && (node->type == type || node->type == KI_JSON_VAL_NULL));
 }
 
 // Adding

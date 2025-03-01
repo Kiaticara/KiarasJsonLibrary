@@ -2,23 +2,15 @@
 
 #include <stdbool.h>
 
+#include "json_val_type.h"
+
 struct ki_json_object;
 struct ki_json_array;
-
-enum KI_JSON_NODE_TYPE
-{
-    KI_JSON_NODE_NULL = 0, //NULL
-    KI_JSON_NODE_OBJECT = 1, //object
-    KI_JSON_NODE_ARRAY = 2, //array
-    KI_JSON_NODE_STRING = 3, //string
-    KI_JSON_NODE_NUMBER = 4, //number
-    KI_JSON_NODE_BOOL = 5 //boolean
-};
 
 //represents a node within a json tree
 struct ki_json_node
 {
-    enum KI_JSON_NODE_TYPE type;
+    enum KI_JSON_VAL_TYPE type;
     
     union
     {

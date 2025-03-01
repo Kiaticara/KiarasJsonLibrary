@@ -2,7 +2,7 @@
 
 #include <stdbool.h>
 
-#include "json_array.h"
+#include "json_val_type.h"
 
 struct ki_json_node;
 
@@ -45,17 +45,10 @@ bool ki_json_object_bool_at(struct ki_json_object* json_object, const char* name
 
 // Is
 
-bool ki_json_object_is_object(struct ki_json_object* json_object, const char* name);
+bool ki_json_object_at_is_type(struct ki_json_object* json_object, const char* name, enum KI_JSON_VAL_TYPE type);
 
-bool ki_json_object_is_array(struct ki_json_object* json_object, const char* name);
-
-bool ki_json_object_is_string(struct ki_json_object* json_object, const char* name);
-
-bool ki_json_object_is_number(struct ki_json_object* json_object, const char* name);
-
-bool ki_json_object_is_bool(struct ki_json_object* json_object, const char* name);
-
-bool ki_json_object_is_null(struct ki_json_object* json_object, const char* name);
+// Non-existant name-value pairs don't count as NULL.
+bool ki_json_object_at_is_type_or_null(struct ki_json_object* json_object, const char* name, enum KI_JSON_VAL_TYPE type);
 
 // Adding
 

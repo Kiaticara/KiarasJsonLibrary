@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "ki_json/json_val_type.h"
+
 // Construction
 
 //Returns NULL on fail.
@@ -19,7 +21,7 @@ struct ki_json_node* ki_json_node_create_from_object(struct ki_json_object* obje
         return NULL;
     }
 
-    node->type = KI_JSON_NODE_OBJECT;
+    node->type = KI_JSON_VAL_OBJECT;
     node->object = object;
 
     return node;
@@ -38,7 +40,7 @@ struct ki_json_node* ki_json_node_create_from_array(struct ki_json_array* array)
         return NULL;
     }
 
-    node->type = KI_JSON_NODE_ARRAY;
+    node->type = KI_JSON_VAL_ARRAY;
     node->array = array;
 
     return node;
@@ -57,7 +59,7 @@ struct ki_json_node* ki_json_node_create_from_string(char* string)
         return NULL;
     }
 
-    node->type = KI_JSON_NODE_STRING;
+    node->type = KI_JSON_VAL_STRING;
     node->string = string;
 
     return node;
@@ -74,7 +76,7 @@ struct ki_json_node* ki_json_node_create_from_number(double number)
         return NULL;
     }
 
-    node->type = KI_JSON_NODE_NUMBER;
+    node->type = KI_JSON_VAL_NUMBER;
     node->number = number;
 
     return node;
@@ -91,7 +93,7 @@ struct ki_json_node* ki_json_node_create_from_bool(bool boolean)
         return NULL;
     }
 
-    node->type = KI_JSON_NODE_BOOL;
+    node->type = KI_JSON_VAL_BOOL;
     node->boolean = boolean;
 
     return node;
@@ -108,7 +110,7 @@ struct ki_json_node* ki_json_node_create_null()
         return NULL;
     }
 
-    node->type = KI_JSON_NODE_NULL;
+    node->type = KI_JSON_VAL_NULL;
     node->object = NULL;
 
     return node;
@@ -121,7 +123,7 @@ struct ki_json_object* ki_json_node_try_get_json_object(struct ki_json_node* nod
 {
     assert(node);
 
-    if (node->type != KI_JSON_NODE_OBJECT)
+    if (node->type != KI_JSON_VAL_OBJECT)
         return NULL;
 
     return node->object;
@@ -132,7 +134,7 @@ struct ki_json_array* ki_json_node_try_get_json_array(struct ki_json_node* node)
 {
     assert(node);
 
-    if (node->type != KI_JSON_NODE_ARRAY)
+    if (node->type != KI_JSON_VAL_ARRAY)
         return NULL;
 
     return node->array;
@@ -143,7 +145,7 @@ char* ki_json_node_try_get_string(struct ki_json_node* node)
 {
     assert(node);
 
-    if (node->type != KI_JSON_NODE_STRING)
+    if (node->type != KI_JSON_VAL_STRING)
         return NULL;
 
     return node->string;
@@ -151,14 +153,14 @@ char* ki_json_node_try_get_string(struct ki_json_node* node)
 
 double ki_json_node_get_number(struct ki_json_node* node)
 {
-    assert(node && node->type == KI_JSON_NODE_NUMBER);
+    assert(node && node->type == KI_JSON_VAL_NUMBER);
 
     return node->number;
 }
 
 bool ki_json_node_get_bool(struct ki_json_node* node)
 {
-    assert(node && node->type == KI_JSON_NODE_BOOL);
+    assert(node && node->type == KI_JSON_VAL_BOOL);
 
     return node->boolean;
 }
@@ -167,7 +169,7 @@ bool ki_json_node_is_null(struct ki_json_node* node)
 {
     assert(node);
 
-    return node->type == KI_JSON_NODE_NULL || node->object == NULL;
+    return node->type == KI_JSON_VAL_NULL || node->object == NULL;
 }
 
 // Destruction
