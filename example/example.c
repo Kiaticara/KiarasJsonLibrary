@@ -1,31 +1,43 @@
 #include <stdio.h>
 
-#include "json_node.h"
+#include "ki_json/json_node.h"
+#include "ki_json/json_object.h"
 
 int main()
 {
+    //TODO: example should do null checks for json objects & nodes
+    
+    printf("creating json object\n");
+
+    struct ki_json_object* object = ki_json_object_create();
+
     printf("creating null node\n");
 
-    struct ki_json_node* node = ki_json_node_create_null();
+    struct ki_json_node* node_null = ki_json_node_create_null();
     
-    printf("destroying null node...\n");
+    printf("creating 2 number node...\n");
 
-    ki_json_node_destroy(node);
-
-    printf("creating number node...\n");
-
-    node = ki_json_node_create_from_number(5.2);
+    struct ki_json_node* node_num1 = ki_json_node_create_from_number(5.2);
+    struct ki_json_node* node_num2 = ki_json_node_create_from_number(-202.2);
     
-    double* num = ki_json_node_try_get_number(node);
+    printf("number node 1 val: %f\n", (float)ki_json_node_get_number(node_num1));
 
-    if (num == NULL)
-        printf("num is NULL!");
-    else
-        printf("number node val: %f\n", (float)*num);
+    printf("number node 2 val: %f\n", (float)ki_json_node_get_number(node_num2));
 
-    printf("destroying number node...\n");
+    printf("adding existing nodes to json object\n");
 
-    ki_json_node_destroy(node);
+    ki_json_object_add_node(object, "test1", node_null);
+    ki_json_object_add_node(object, "test2", node_num1);
+    ki_json_object_add_node(object, "test3", node_num2);
+
+    printf("adding new nodes to json object\n");
+
+    ki_json_object_add_bool(object, "test4", true);
+    ki_json_object_add_string(object, "test5", "abc");
+    ki_json_object_add_number(object, "test6", 3.3);
+    
+    printf("destroying json object\n");
+    ki_json_object_free(object);
 
     return 0;
 }

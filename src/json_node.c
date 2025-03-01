@@ -7,28 +7,22 @@
 // Construction
 
 //Returns NULL on fail.
-static struct ki_json_node* ki_json_node_create(enum KI_JSON_NODE_TYPE type, void* data)
-{
-    struct ki_json_node* node = calloc(1, sizeof(*node));
-
-    if (node == NULL)
-    {
-        printf("ki_json_node_create: allocation fail");
-        return NULL;
-    }
-
-    node->type = type;
-    node->data = data;
-
-    return node;
-}
-
-//Returns NULL on fail.
 struct ki_json_node* ki_json_node_create_from_object(struct ki_json_object* object)
 {
     assert(object);
     
-    return ki_json_node_create(KI_JSON_NODE_OBJECT, object);
+    struct ki_json_node* node = calloc(1, sizeof(*node));
+
+    if (node == NULL)
+    {
+        printf("ki_json_node_create_from_object: allocation fail");
+        return NULL;
+    }
+
+    node->type = KI_JSON_NODE_OBJECT;
+    node->object = object;
+
+    return node;
 }
 
 //Returns NULL on fail.
@@ -36,7 +30,18 @@ struct ki_json_node* ki_json_node_create_from_array(struct ki_json_array* array)
 {
     assert(array);
     
-    return ki_json_node_create(KI_JSON_NODE_ARRAY, array);
+    struct ki_json_node* node = calloc(1, sizeof(*node));
+
+    if (node == NULL)
+    {
+        printf("ki_json_node_create_from_array: allocation fail");
+        return NULL;
+    }
+
+    node->type = KI_JSON_NODE_ARRAY;
+    node->array = array;
+
+    return node;
 }
 
 //Returns NULL on fail.
@@ -44,28 +49,33 @@ struct ki_json_node* ki_json_node_create_from_string(char* string)
 {
     assert(string);
     
-    return ki_json_node_create(KI_JSON_NODE_STRING, string);
+    struct ki_json_node* node = calloc(1, sizeof(*node));
+
+    if (node == NULL)
+    {
+        printf("ki_json_node_create_from_string: allocation fail");
+        return NULL;
+    }
+
+    node->type = KI_JSON_NODE_STRING;
+    node->string = string;
+
+    return node;
 }
 
 //Returns NULL on fail.
 struct ki_json_node* ki_json_node_create_from_number(double number)
 {
-    //copy val
-    double* copy = calloc(1, sizeof(*copy));
-    
-    if (copy == NULL)
+    struct ki_json_node* node = calloc(1, sizeof(*node));
+
+    if (node == NULL)
     {
-        printf("ki_json_node_create_from_number: copy allocation fail");
+        printf("ki_json_node_create_from_number: allocation fail");
         return NULL;
     }
 
-    *copy = number;
-
-    struct ki_json_node* node = ki_json_node_create(KI_JSON_NODE_NUMBER, copy);
-
-    //free copied val on fail
-    if (node == NULL)
-        free(copy);
+    node->type = KI_JSON_NODE_NUMBER;
+    node->number = number;
 
     return node;
 }
@@ -73,30 +83,35 @@ struct ki_json_node* ki_json_node_create_from_number(double number)
 //Returns NULL on fail.
 struct ki_json_node* ki_json_node_create_from_bool(bool boolean)
 {
-    //copy val
-    bool* copy = calloc(1, sizeof(*copy));
-    
-    if (copy == NULL)
+    struct ki_json_node* node = calloc(1, sizeof(*node));
+
+    if (node == NULL)
     {
-        printf("ki_json_node_create_from_bool: copy allocation fail");
+        printf("ki_json_node_create_from_bool: allocation fail");
         return NULL;
     }
 
-    *copy = boolean;
-
-    struct ki_json_node* node = ki_json_node_create(KI_JSON_NODE_BOOL, copy);
-
-    //free copied val on fail
-    if (node == NULL)
-        free(copy);
+    node->type = KI_JSON_NODE_BOOL;
+    node->boolean = boolean;
 
     return node;
 }
 
-//Creates a node with data == NULL and KI_JSON_NODE_NULL as type. Returns NULL on fail.
+//Creates a node with KI_JSON_NODE_NULL as type. Returns NULL on fail.
 struct ki_json_node* ki_json_node_create_null()
 {
-    return ki_json_node_create(KI_JSON_NODE_NULL, NULL);
+    struct ki_json_node* node = calloc(1, sizeof(*node));
+
+    if (node == NULL)
+    {
+        printf("ki_json_node_create_null: allocation fail");
+        return NULL;
+    }
+
+    node->type = KI_JSON_NODE_NULL;
+    node->object = NULL;
+
+    return node;
 }
 
 // Get data
@@ -109,7 +124,7 @@ struct ki_json_object* ki_json_node_try_get_json_object(struct ki_json_node* nod
     if (node->type != KI_JSON_NODE_OBJECT)
         return NULL;
 
-    return node->data;
+    return node->object;
 }
 
 //Returns NULL on fail.
@@ -120,7 +135,7 @@ struct ki_json_array* ki_json_node_try_get_json_array(struct ki_json_node* node)
     if (node->type != KI_JSON_NODE_ARRAY)
         return NULL;
 
-    return node->data;
+    return node->array;
 }
 
 //Returns NULL on fail.
@@ -131,49 +146,35 @@ char* ki_json_node_try_get_string(struct ki_json_node* node)
     if (node->type != KI_JSON_NODE_STRING)
         return NULL;
 
-    return node->data;
+    return node->string;
 }
 
-//Returns NULL on fail.
-double* ki_json_node_try_get_number(struct ki_json_node* node)
+double ki_json_node_get_number(struct ki_json_node* node)
 {
-    assert(node);
+    assert(node && node->type == KI_JSON_NODE_NUMBER);
 
-    return node->data;
+    return node->number;
 }
 
-//Returns NULL on fail.
-bool* ki_json_node_try_get_bool(struct ki_json_node* node)
+bool ki_json_node_get_bool(struct ki_json_node* node)
 {
-    assert(node);
+    assert(node && node->type == KI_JSON_NODE_BOOL);
 
-    return node->data;
+    return node->boolean;
 }
 
 bool ki_json_node_is_null(struct ki_json_node* node)
 {
     assert(node);
 
-    return node->type == KI_JSON_NODE_NULL || node->data == NULL;
+    return node->type == KI_JSON_NODE_NULL || node->object == NULL;
 }
 
 // Destruction
 
-void ki_json_node_destroy(struct ki_json_node* node)
+void ki_json_node_free(struct ki_json_node* node)
 {
-    switch(node->type)
-    {
-        case KI_JSON_NODE_NUMBER:
-        case KI_JSON_NODE_BOOL:
-
-            //free copied data
-            if (node->data != NULL)
-                free(node->data);
-
-            break;
-        default:
-            break;
-    }
+    assert(node);
 
     free(node);
 }
