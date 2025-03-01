@@ -9,7 +9,7 @@ int main()
     
     printf("creating json object\n");
 
-    struct ki_json_object* object = ki_json_object_create();
+    struct ki_json_object* object = ki_json_object_create(1);
 
     printf("creating null node\n");
 

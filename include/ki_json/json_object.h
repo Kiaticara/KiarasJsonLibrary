@@ -20,11 +20,8 @@ struct ki_json_object
     int capacity;
 };
 
-
-//TODO: implement ki_json_object
-
-// Returns NULL on fail.
-struct ki_json_object* ki_json_object_create();
+// Starting capacity must be larger than 0. Returns NULL on fail.
+struct ki_json_object* ki_json_object_create(int capacity);
 
 // At
 

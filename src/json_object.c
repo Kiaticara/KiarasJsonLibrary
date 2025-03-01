@@ -6,14 +6,14 @@
 
 #include "ki_json/json_node.h"
 
-struct ki_json_object* ki_json_object_create()
+struct ki_json_object* ki_json_object_create(int capacity)
 {
     struct ki_json_object* json_object = calloc(1, sizeof(*json_object));
 
     if (json_object == NULL)
         return NULL;
 
-    json_object->capacity = 2;
+    json_object->capacity = capacity;
     json_object->num_pairs = 0;
 
     json_object->names = calloc(json_object->capacity, sizeof(*json_object->names));
