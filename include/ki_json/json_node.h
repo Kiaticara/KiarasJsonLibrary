@@ -8,18 +8,26 @@ struct ki_json_array;
 enum KI_JSON_NODE_TYPE
 {
     KI_JSON_NODE_NULL = 0, //NULL
-    KI_JSON_NODE_OBJECT = 1, //struct ki_json_object*
-    KI_JSON_NODE_ARRAY = 2, //struct ki_json_array*
-    KI_JSON_NODE_STRING = 3, //char*
-    KI_JSON_NODE_NUMBER = 4, //double*
-    KI_JSON_NODE_BOOL = 5 //bool*
+    KI_JSON_NODE_OBJECT = 1, //object
+    KI_JSON_NODE_ARRAY = 2, //array
+    KI_JSON_NODE_STRING = 3, //string
+    KI_JSON_NODE_NUMBER = 4, //number
+    KI_JSON_NODE_BOOL = 5 //boolean
 };
 
 //represents a node within a json tree
 struct ki_json_node
 {
     enum KI_JSON_NODE_TYPE type;
-    void* data;
+    
+    union
+    {
+        struct ki_json_object* object;
+        struct ki_json_array* array;
+        char* string;
+        double number;
+        bool boolean;
+    };
 };
 
 // Construction
@@ -39,7 +47,7 @@ struct ki_json_node* ki_json_node_create_from_number(double number);
 //Returns NULL on fail.
 struct ki_json_node* ki_json_node_create_from_bool(bool boolean);
 
-//Creates a node with data == NULL and KI_JSON_NODE_NULL as type. Returns NULL on fail.
+//Creates a node with KI_JSON_NODE_NULL as type. Returns NULL on fail.
 struct ki_json_node* ki_json_node_create_null();
 
 // Get data
@@ -53,15 +61,13 @@ struct ki_json_array* ki_json_node_try_get_json_array(struct ki_json_node* node)
 //Returns NULL on fail.
 char* ki_json_node_try_get_string(struct ki_json_node* node);
 
-//Returns NULL on fail.
-double* ki_json_node_try_get_number(struct ki_json_node* node);
+double ki_json_node_get_number(struct ki_json_node* node);
 
-//Returns NULL on fail.
-bool* ki_json_node_try_get_bool(struct ki_json_node* node);
+bool ki_json_node_get_bool(struct ki_json_node* node);
 
 bool ki_json_node_is_null(struct ki_json_node* node);
 
 // Destruction
 
-//Frees node, only frees data if it was a double or bool. Does not free given data like struct ki_json_object*, ki_json_array* or char*
-void ki_json_node_destroy(struct ki_json_node* node);
+//Frees node.
+void ki_json_node_free(struct ki_json_node* node);
