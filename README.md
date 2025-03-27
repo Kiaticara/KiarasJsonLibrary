@@ -3,7 +3,8 @@
 ## Building (using UNIX Makefiles)
 
     cmake -S . -B build
-    cd build && make
+    cd build
+    make
 
 ## Refs
 
