@@ -146,7 +146,45 @@ static bool parse_string(struct json_reader* reader, char** string, int* length)
 
 static bool parse_number(struct json_reader* reader, int* number);
 
-static bool parse_boolean(struct json_reader* reader, bool* boolean);
+// parse next bool in the json string,
+// returns true on success and outs boolean, returns false on fail
+static bool parse_boolean(struct json_reader* reader, bool* boolean)
+{
+    assert(reader && boolean);
+
+    bool new_boolean = false; 
+    const char* check = ""; //string to check for
+    int length = 0; //length of string to check for
+
+    //pick according to first character which string to check for
+    switch (reader_read_char(reader))
+    {
+        case 't':
+            check = "true";
+            length = 4;
+            new_boolean = true;
+            break;
+        case 'f':
+            check = "false";
+            length = 5;
+            new_boolean = false;
+            break;
+        default:
+            return false; //invalid, not a boolean!
+    }
+
+    //check for the rest of the characters
+    for (int i = 1; i < length; i++)
+    {
+        if (reader_read_char(reader) != check[i])
+            return false; //invalid, not a boolean!
+    }
+
+    //success! out boolean
+    *boolean = new_boolean;
+
+    return true;
+}
 
 static bool parse_array(struct json_reader* reader, struct ki_json_array* array);
 
