@@ -14,9 +14,10 @@ struct json_reader
     int pos;
 };
 
+// returns true if character is a space, horizontal tab, line feed/break or carriage return, else false.
 static bool char_is_whitespace(char character)
 {
-    return (character == ' ') || (character == '\t') || (character == '\n');
+    return (character == ' ') || (character == '\t') || (character == '\n') || (character == '\r');
 }
 
 static bool char_is_quote(char character)
