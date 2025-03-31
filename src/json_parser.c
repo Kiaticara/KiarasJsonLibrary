@@ -166,18 +166,40 @@ static bool parse_string(struct json_reader* reader, char** string, int* length)
 
 static bool parse_number(struct json_reader* reader, int* number);
 
+// parse next given literal in the json string
+// returns true on success, returns false on fail
+static bool parse_literal(struct json_reader* reader, const char* literal, int literal_length)
+{
+    if (!reader_can_read(reader, literal_length))
+        return false;
+
+    //read characters, returning false if the characters aren't the same as in given literal
+    for (int i = 0; i < literal_length; i++)
+    {
+        if (reader_access_char(reader, i) != literal[i])
+            return false; //literal not found!
+    }
+
+    //found literal :)
+    reader->offset += literal_length;
+    return true;
+}
+
 // parse next bool in the json string,
 // returns true on success and outs boolean, returns false on fail
 static bool parse_boolean(struct json_reader* reader, bool* boolean)
 {
     assert(reader && boolean);
 
-    bool new_boolean = false; 
-    const char* check = ""; //string to check for
-    int length = 0; //length of string to check for
+    if (!reader_can_read(reader, 1))
+        return false;
 
+    const char* check = "";
+    int length = 0;
+    bool new_boolean = false;
+    
     //pick according to first character which string to check for
-    switch (reader_read_char(reader))
+    switch (reader_access_char(reader, 0))
     {
         case 't':
             check = "true";
@@ -193,12 +215,8 @@ static bool parse_boolean(struct json_reader* reader, bool* boolean)
             return false; //invalid, not a boolean!
     }
 
-    //check for the rest of the characters
-    for (int i = 1; i < length; i++)
-    {
-        if (reader_read_char(reader) != check[i])
-            return false; //invalid, not a boolean!
-    }
+    if (!parse_literal(reader, check, length))
+        return false;
 
     //success! out boolean
     *boolean = new_boolean;
@@ -206,6 +224,11 @@ static bool parse_boolean(struct json_reader* reader, bool* boolean)
     return true;
 }
 
-static bool parse_array(struct json_reader* reader, struct ki_json_array* array);
+// parses next null character sequence (as in 4 actual characters) in the json string
+// returns true if found, false if not
+static bool parse_null(struct json_reader* reader)
+{
+    assert(reader);
 
-static bool parse_object(struct json_reader* reader, struct ki_json_object* object);
+    return parse_literal(reader, "null", 4);
+}
