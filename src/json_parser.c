@@ -10,8 +10,8 @@ struct json_reader
     char* json_string;
     // Length of json_string (excluding null terminator)
     int length; 
-    // Current reader index position
-    int pos;
+    // Current reader index offset
+    int offset;
 };
 
 // returns true if character is a space, horizontal tab, line feed/break or carriage return, else false.
@@ -20,21 +20,40 @@ static bool char_is_whitespace(char character)
     return (character == ' ') || (character == '\t') || (character == '\n') || (character == '\r');
 }
 
-static bool char_is_quote(char character)
+// can reader read (num) amount of chars?
+static bool reader_can_read(struct json_reader* reader, int num)
 {
-    return (character == '\"') || (character == '\'');
+    return (reader->offset + num <= reader->length);
+}
+
+// can reader access char at index pos offsetted by the reader's offset?
+static bool reader_can_access_char(struct json_reader* reader, int pos)
+{
+    return (reader->offset + pos < reader->length);
+}
+
+// reads char in json string at index pos offsetted by the reader's offset, returns \0 on fail
+static char reader_access_char(struct json_reader* reader, int pos)
+{
+    assert(reader);
+
+    if (!reader_can_access_char(reader, pos))
+        return '\0';
+
+    return reader->json_string[reader->offset + pos];
 }
 
 // reads 1 char in json string, returns \0 if end is reached
+// DEPRECATED DON'T USE
 static char reader_read_char(struct json_reader* reader)
 {
     assert(reader);
 
-    if (reader->pos == reader->length)
+    if (reader->offset == reader->length)
         return '\0';
 
-    reader->pos++;
-    return reader->json_string[reader->pos - 1];
+    reader->offset++;
+    return reader->json_string[reader->offset - 1];
 }
 
 // reads an escaped sequence in json string, returns \0 if end is reached or on fail.
