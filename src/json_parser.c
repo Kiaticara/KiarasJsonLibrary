@@ -1,5 +1,7 @@
 #include "ki_json/json_parser.h"
 
+#include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
@@ -9,9 +11,9 @@ struct json_reader
 {
     char* json_string;
     // Length of json_string (excluding null terminator)
-    int length; 
+    size_t length; 
     // Current reader index offset
-    int offset;
+    size_t offset;
 };
 
 // returns true if character is a space, horizontal tab, line feed/break or carriage return, else false.
@@ -21,19 +23,19 @@ static bool char_is_whitespace(char character)
 }
 
 // can reader read (num) amount of chars?
-static bool reader_can_read(struct json_reader* reader, int num)
+static bool reader_can_read(struct json_reader* reader, size_t num)
 {
     return (reader->offset + num <= reader->length);
 }
 
 // can reader access char at index pos offsetted by the reader's offset?
-static bool reader_can_access_char(struct json_reader* reader, int pos)
+static bool reader_can_access_char(struct json_reader* reader, size_t pos)
 {
     return (reader->offset + pos < reader->length);
 }
 
 // reads char in json string at index pos offsetted by the reader's offset, returns \0 on fail
-static char reader_access_char(struct json_reader* reader, int pos)
+static char reader_access_char(struct json_reader* reader, size_t pos)
 {
     assert(reader);
 
