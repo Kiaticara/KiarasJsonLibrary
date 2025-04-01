@@ -45,6 +45,16 @@ static char reader_access_char(struct json_reader* reader, size_t pos)
     return reader->json_string[reader->offset + pos];
 }
 
+static char* reader_buffer_at(struct json_reader* reader, size_t pos)
+{
+    assert(reader);
+
+    if (!reader_can_access_char(reader, pos))
+        return NULL;
+
+    return reader->json_string + reader->offset + pos;
+}
+
 // reads 1 char in json string, returns \0 if end is reached
 // DEPRECATED DON'T USE
 static char reader_read_char(struct json_reader* reader)
@@ -166,7 +176,24 @@ static bool parse_string(struct json_reader* reader, char** string, int* length)
     return true;
 }
 
-static bool parse_number(struct json_reader* reader, int* number);
+static bool parse_number(struct json_reader* reader, double* number)
+{
+    assert(reader && number);
+
+    char* buffer = reader_buffer_at(reader, 0);
+
+    if (buffer == NULL)
+        return false;
+
+    char* endptr;
+    *number = strtod(buffer, &endptr);
+
+    //move reader to endptr
+    if (endptr != NULL)
+        reader->offset += (endptr - buffer);
+
+    return endptr != buffer;
+}
 
 // parse next given literal in the json string
 // returns true on success, returns false on fail
