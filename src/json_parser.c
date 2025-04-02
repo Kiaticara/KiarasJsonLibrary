@@ -7,6 +7,8 @@
 #include <string.h>
 #include <assert.h>
 
+#include "ki_json/json.h"
+
 // utf8 characters have 4 bytes max, plus null-terminator
 // -> 5 bytes
 #define CHARACTER_MAX_BUFFER_SIZE 5
@@ -389,4 +391,100 @@ static bool parse_null(struct json_reader* reader)
     assert(reader);
 
     return parse_literal(reader, "null", 4);
+}
+
+static bool parse_array(struct json_reader* reader, struct ki_json_array* array)
+{
+    assert(reader && array);
+
+    //TODO: implement parse_array
+
+    return false;
+}
+
+static bool parse_object(struct json_reader* reader, struct ki_json_object* object)
+{
+    assert(reader && object);
+
+    //TODO: implement parse_object
+
+    return false;
+}
+
+// parses next json value in the json string
+// returns true on success and outs val (ki_json_val), returns false on fail
+static bool parse_value(struct json_reader* reader, struct ki_json_val** val)
+{
+    assert(reader && val);
+
+    if (!reader_can_access(reader, 0))
+        return false;
+
+    //pick according to first character which type to try and parse, and parse it (duh)
+
+    struct ki_json_val* new_val = calloc(1, sizeof(*new_val));
+
+    //alloc fail
+    if (new_val == NULL)
+        return false;
+
+    bool success = false;
+
+    switch (reader_char_at(reader, 0))
+    {
+        //string
+        case '\"':
+            new_val->type = KI_JSON_VAL_STRING;
+            success = parse_string(reader, &new_val->string.bytes, &new_val->string.length);
+            break;
+        //boolean
+        case 't':
+        case 'f':
+            new_val->type = KI_JSON_VAL_BOOL;
+            success = parse_boolean(reader, &new_val->boolean);
+            break;   
+        //json object (ki_json_object)
+        case '{':
+            new_val->type = KI_JSON_VAL_OBJECT;
+            success = parse_object(reader, &new_val->object);
+            break;
+        //json array (ki_json_array)
+        case '[':
+            new_val->type = KI_JSON_VAL_ARRAY;
+            success = parse_array(reader, &new_val->array);
+            break;
+        //null
+        case 'n':
+            new_val->type = KI_JSON_VAL_NULL;
+            success = parse_null(reader);
+            new_val->null = success;
+            break;
+        //number
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+        case '-':
+        case 'e':
+        case 'E':
+        case '.':
+            new_val->type = KI_JSON_VAL_NUMBER;
+            success = parse_number(reader, &new_val->number);
+            break;
+        default:
+            break;
+    }
+
+    if (success)
+        *val = new_val; //out
+    else
+        free(new_val);
+
+    return success;
 }
