@@ -46,7 +46,7 @@ struct ki_json_array
 // A string value
 struct ki_string
 {
-    char* string;
+    char* bytes;
     size_t length;
 };
 
