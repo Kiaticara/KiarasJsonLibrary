@@ -7,8 +7,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS true)
 
 set(
     LIB_SOURCES
-    "src/json_node.c"
-    "src/json_object.c"
+    "src/json/json_val.c"
+    "src/json/json_object.c"
+    "src/json/json_array.c"
+    "src/json_parser.c"
 )
 
 set(LIB_INCLUDE include)

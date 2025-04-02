@@ -6,8 +6,8 @@
 #include <assert.h>
 #include <string.h>
 
-#include "ki_json/json_node.h"
-#include "ki_json/json_object.h"
+#include "ki_json/json.h"
+#include "ki_json/json_parser.h"
 
 #define CHARACTER_MAX_BUFFER_SIZE 5
 
@@ -388,35 +388,34 @@ int main()
     
     printf("creating json object\n");
 
-    struct ki_json_object* object = ki_json_object_create(1);
+    struct ki_json_val* val_object = ki_json_val_create_object(1);
 
-    printf("creating null node\n");
+    printf("creating null json val\n");
 
-    struct ki_json_node* node_null = ki_json_node_create_null();
+    struct ki_json_val* val_null = ki_json_val_create_null();
     
-    printf("creating 2 number node...\n");
+    printf("creating 2 number json values...\n");
 
-    struct ki_json_node* node_num1 = ki_json_node_create_from_number(5.2);
-    struct ki_json_node* node_num2 = ki_json_node_create_from_number(-202.2);
+    struct ki_json_val* val_num1 = ki_json_val_create_from_number(5.2);
+    struct ki_json_val* val_num2 = ki_json_val_create_from_number(-202.2);
     
-    printf("number node 1 val: %f\n", (float)ki_json_node_get_number(node_num1));
+    printf("number node 1 val: %f\n", val_num1->number);
+    printf("number node 2 val: %f\n", val_num2->number);
 
-    printf("number node 2 val: %f\n", (float)ki_json_node_get_number(node_num2));
+    printf("adding existing values to json object\n");
 
-    printf("adding existing nodes to json object\n");
-
-    ki_json_object_add_node(object, "test1", node_null);
-    ki_json_object_add_node(object, "test2", node_num1);
-    ki_json_object_add_node(object, "test3", node_num2);
+    ki_json_object_add(&val_object->object, "test1", val_null);
+    ki_json_object_add(&val_object->object, "test2", val_num1);
+    ki_json_object_add(&val_object->object, "test3", val_num2);
 
     printf("adding new nodes to json object\n");
 
-    ki_json_object_add_bool(object, "test4", true);
-    ki_json_object_add_string(object, "test5", "abc");
-    ki_json_object_add_number(object, "test6", 3.3);
+    ki_json_object_add_new_bool(&val_object->object, "test4", true);
+    ki_json_object_add_new_string(&val_object->object, "test5", "abc");
+    ki_json_object_add_new_number(&val_object->object, "test6", 3.3);
     
-    printf("destroying json object\n");
-    ki_json_object_free(object);
+    printf("destroying json object val\n");
+    ki_json_val_free(val_object);
 
     //unicode char \u00AE should turn into the copyright symbol
     //TODO: unicode code point must be implemented for this

@@ -1,6 +1,19 @@
-# Kiara's Json Library
+# Kiara's Json Library (ki_json)
 
-A library for parsing & generating json strings & files.
+A library for parsing & generating json strings.
+
+Notes:
+
+- Supports utf8 only
+- \0 (NULL character) is not supported
+
+## Headers
+
+| Header file | Description |
+| --- | --- |
+| json.h | functions for and representation of json values & trees, including json objects & json arrays |
+| json_parser.h | functions for parsing json strings to ki_json's representation of them |
+| json_generator.h | functions for generating json strings from ki_json's representation of them |
 
 ## Building (using cmake & UNIX Makefiles)
 
