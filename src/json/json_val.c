@@ -50,7 +50,7 @@ struct ki_json_val* ki_json_val_create_from_string(const char* string)
 
     val->type = KI_JSON_VAL_STRING;
     val->string.bytes = NULL;
-    val->string.length = 0;
+    val->string.buffer_size = 0;
     ki_json_val_set_string(val, string);
 
     return val;
@@ -129,7 +129,7 @@ bool ki_json_val_set_string(struct ki_json_val* val, const char* string)
         free(val->string.bytes);
 
     val->string.bytes = copy;
-    val->string.length = length;
+    val->string.buffer_size = length + 1;
 
     return true;
 }
@@ -153,7 +153,7 @@ void ki_json_val_free(struct ki_json_val* val)
         case KI_JSON_VAL_STRING:
             free(val->string.bytes);
             val->string.bytes = NULL;
-            val->string.length = 0;
+            val->string.buffer_size = 0;
             break;
         default: //KI_JSON_VAL_BOOL, KI_JSON_VAL_NUMBER, KI_JSON_VAL_NULL
             break;
