@@ -9,9 +9,8 @@
 
 #include "ki_json/json.h"
 
-// utf8 characters have 4 bytes max, plus null-terminator
-// -> 5 bytes
-#define CHARACTER_MAX_BUFFER_SIZE 5
+// utf8 characters have 4 bytes max
+#define CHARACTER_MAX_BUFFER_SIZE 4
 
 struct json_reader
 {
@@ -110,18 +109,18 @@ static uint32_t str_to_unicode_codepoint(char* string)
     return codepoint;
 }
 
-// convert an unicode code point to utf8 bytes with a null-terminator
-// returns true on success, and outs utf8 bytes, and false on fail
-static bool unicode_codepoint_to_utf8(uint32_t codepoint, unsigned char* utf8, int buffer_size)
+// convert an unicode code point to utf8 bytes
+// returns number of bytes written, 0 on fail
+static int unicode_codepoint_to_utf8(uint32_t codepoint, unsigned char* utf8, int buffer_size)
 {
     assert(utf8);
 
     //oh my god text encoding really is something, isn't it
+    //SEE: https://en.wikipedia.org/wiki/UTF-8#Description
 
     //determine amount of utf8 bytes
-    //SEE: https://en.wikipedia.org/wiki/UTF-8#Description
     
-    int bytes = -1;
+    int bytes = 0;
 
     if (codepoint >= 0x0000 && codepoint <= 0x007F)
         bytes = 1;
@@ -132,16 +131,16 @@ static bool unicode_codepoint_to_utf8(uint32_t codepoint, unsigned char* utf8, i
     else if (codepoint >= 0x010000 && codepoint <= 0x10FFFF) //impossible in ki_json as only 4 hex digits are supported
         bytes = 4;
 
-    //invalid codepoint or buffer size too small for utf8 bytes + null-terminator
-    if (bytes == -1 || bytes + 1 > buffer_size)
-        return false;
+    //invalid codepoint or buffer size too small for utf8 bytes
+    if (bytes == 0 || bytes > buffer_size)
+        return 0;
 
     if (bytes == 1)
     {
         //use 7 least significant bits of codepoint
         //keep most significant bit as 0
         utf8[0] = (unsigned char)(codepoint & ((2 << 7) - 1));
-        return true;
+        return bytes;
     }
 
     //set all used bytes except first byte to begin with bits 1-0
@@ -152,40 +151,30 @@ static bool unicode_codepoint_to_utf8(uint32_t codepoint, unsigned char* utf8, i
     for (int i = bytes - 1; i > 0; i--)
     {
         //get 6 least significant bits of codepoint
-        unsigned char bits = (unsigned char)(codepoint & ((2 << 6) - 1));
+        unsigned char bits = (codepoint & ((2 << 6) - 1));
         //shift codepoint over by read bits
         codepoint >>= 6;
         //add bits
         utf8[i] |= bits;
     }
 
+    //remaining bits to fill with codepoint bits
+    int remaining_bits = 8 - bytes - 1;
+
     //first byte uses bits before first 0-bit to keep track of the amount of bytes the utf8 character uses
     //110 -> 2 bytes
     //1110 -> 3 bytes
     //11110 -> 4 bytes
-    switch(bytes)
-    {
-        case 2:
-            utf8[0] = 0b110 << 5; 
-            break;
-        case 3:
-            utf8[0] = 0b1110 << 4;
-            break;
-        case 4:
-            utf8[0] = 0b11110 << 3; 
-            break;
-    }
+    //0b10 << 2
+    //0b1000 - 0b01
+    //0b0111 - 0b01
+    //0b0110
+    utf8[0] = ((2 << bytes) - 2) << remaining_bits;
 
-    //fill remaining bits with codepoint bits
-    int remaining_bits = 8 - bytes - 1;
-    //get 6 least significant bits of codepoint
-    unsigned char bits = (unsigned char)(codepoint & ((2 << remaining_bits) - 1));
-    //add bits
-    utf8[0] |= bits;
+    //fill remaining bits with remaining least significant bits of codepoint
+    utf8[0] |= (codepoint & ((2 << remaining_bits) - 1));
 
-    utf8[bytes] = '\0'; //null-terminator
-
-    return true;
+    return bytes;
 }
 
 // escapes given char with a backslash (n -> \n, r -> \r, ...)
@@ -214,16 +203,16 @@ static char char_to_single_escape_sequence_char(char type)
     }
 }
 
-// converts escape sequence in (string) to utf8 bytes and output to (bytes) with null-terminator along with the length of read sequence
+// converts escape sequence in (string) to utf8 bytes and output to (bytes) along with the length of read sequence
 // supports unicode code points \uXXXX (X = hex digit), converting to utf8
-// returns true on success, false on fail.
-static bool escape_sequence_to_utf8(char* string, unsigned char* bytes, size_t buffer_size, size_t* sequence_length)
+// returns number of bytes written, 0 on fail
+static int escape_sequence_to_utf8(char* string, unsigned char* bytes, size_t buffer_size, size_t* sequence_length)
 {
     assert(string && bytes && buffer_size > 0 && sequence_length);
 
     //invalid escape sequence
     if (string[0] != '\\')
-        return false;
+        return 0;
 
     char escape_char_type = string[1];
     if (escape_char_type == 'u') //unicode code point, convert to utf8 bytes
@@ -234,27 +223,28 @@ static bool escape_sequence_to_utf8(char* string, unsigned char* bytes, size_t b
 
         //invalid codepoint
         if (codepoint == -1)
-            return false;
+            return 0;
 
         //convert to utf8 bytes
-        if (!unicode_codepoint_to_utf8(codepoint, bytes, buffer_size))
-            return false;
+        
+        int num_bytes = unicode_codepoint_to_utf8(codepoint, bytes, buffer_size);
 
         *sequence_length = 6;
+
+        return num_bytes;
     }
     else //single char
     {
-        //buffer size must be atleast 2 bytes
-        if (buffer_size < 2)
-            return false;
+        //buffer size must be atleast 1 byte
+        if (buffer_size < 1)
+            return 0;
 
         bytes[0] = (unsigned char)char_to_single_escape_sequence_char(escape_char_type);
-        bytes[1] = '\0'; //null-terminator
 
         *sequence_length = 2;
-    }
 
-    return true;
+        return 1;
+    }
 }
 
 #pragma endregion
@@ -262,7 +252,7 @@ static bool escape_sequence_to_utf8(char* string, unsigned char* bytes, size_t b
 #pragma region Parsing
 
 // parse next quoted string in json string,
-// string must be free'd,
+// string must be free'd once donce,
 // returns true on success, and outs string and buffer size (not including null terminator); and false on fail
 static bool parse_string(struct json_reader* reader, char** string, size_t* buffer_size)
 {
@@ -276,6 +266,7 @@ static bool parse_string(struct json_reader* reader, char** string, size_t* buff
     size_t string_end = 1;
 
     //get max length of string
+
     size_t max_string_length = 0;
 
     while (reader_can_access(reader, string_end) && reader_char_at(reader, string_end) != '\"')
@@ -293,7 +284,7 @@ static bool parse_string(struct json_reader* reader, char** string, size_t* buff
         return false;
 
     //alloc string
-    char* new_string = calloc(max_string_length + 1, sizeof(char));
+    char* new_string = calloc(max_string_length + 1, sizeof(*new_string));
 
     if (new_string == NULL)
         return false;
@@ -307,32 +298,30 @@ static bool parse_string(struct json_reader* reader, char** string, size_t* buff
     while (reader_pos < string_end)
     {
         size_t sequence_length = 1;
-        char bytes[CHARACTER_MAX_BUFFER_SIZE]; //character bytes, max. 4 bytes (utf8) + 1 for null-terminator
+
+        int num_bytes = 1;
+        char bytes[CHARACTER_MAX_BUFFER_SIZE]; //character bytes, max. 4 bytes (utf8)
+
         bytes[0] = reader_char_at(reader, reader_pos);
-        bytes[1] = '\0';
 
         //start of an escape sequence
         if (bytes[0] == '\\')
         {
             char* read_buffer = reader_buffer_at(reader, reader_pos);
 
-            //invalid escape sequence or failed to parse it
             //NOTE: the cast to unsigned char* is a bit weird, but it seems to be my only choice for utf8
-            if (read_buffer == NULL || !escape_sequence_to_utf8(read_buffer, (unsigned char*)bytes, CHARACTER_MAX_BUFFER_SIZE, &sequence_length))
+            num_bytes = escape_sequence_to_utf8(read_buffer, (unsigned char*)bytes, CHARACTER_MAX_BUFFER_SIZE, &sequence_length);
+
+            //invalid escape sequence or failed to parse it
+            if (num_bytes == 0)
             {
                 free(new_string);
                 return false;
             }
         }
 
-        //last byte is always a null-terminator, or completely empty if the null-terminator appears earlier
-        //this ensures that strlen will never go over 4
-        //we do this every iteration just in case somewhere we slip up and edit the last byte
-        //and i'm very scared of slipping into the volcano known as memory corruption
-        bytes[4] = '\0';
-        
-        size_t length = strlen(bytes);
-        for (int i = 0; i < length; i++)
+        //write bytes into new string
+        for (int i = 0; i < num_bytes; i++)
         {
             if (new_string_pos >= max_string_length)
             {
@@ -365,6 +354,7 @@ static bool parse_string(struct json_reader* reader, char** string, size_t* buff
 
     return true;
 }
+
 
 static bool parse_number(struct json_reader* reader, double* number)
 {
