@@ -333,10 +333,11 @@ bool ki_json_object_set_number(struct ki_json_object* object, const char* name, 
 {
     struct ki_json_val* val = ki_json_object_get(object, name);
 
-    if (val == NULL)
+    if (val == NULL || val->type != KI_JSON_VAL_NUMBER)
         return false;
 
     val->number = number;
+
     return true;
 }
 
@@ -346,10 +347,11 @@ bool ki_json_object_set_bool(struct ki_json_object* object, const char* name, bo
 {
     struct ki_json_val* val = ki_json_object_get(object, name);
 
-    if (val == NULL)
+    if (val == NULL || val->type != KI_JSON_VAL_BOOL)
         return false;
 
     val->boolean = boolean;
+
     return true;
 }
 

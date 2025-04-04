@@ -92,9 +92,9 @@ int main()
 
     //unicode code point testing
     //first: 2 byte trademark character & 2 byte yen sign
-    //second: 2 byte Latin Capital Letter Esh and 3 byte Latin Small Letter Y with loop
+    //second: 2 byte Latin Capital Letter Esh and 3 byte Latin Small Letter Y with loop and another 2 byte Latin Capital Letter Esh
 
-    struct json_reader reader2 = {"\"aa\\u00AEabc\\u00A5\"\"\\u01A9\\u1EFF\"", 33, 0};
+    struct json_reader reader2 = {"\"aa\\u00AEabc\\u00A5\"\"\\u01A9\\u1EFF\\u01A9\"", 39, 0};
     
     string = NULL;
     buffer_size = 0;

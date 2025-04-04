@@ -87,7 +87,7 @@ static int hex_digit_to_int(char hex_digit)
 // parse a unicode code point in a string
 // only XXXX format is supported, where each X is a hex digit
 // returns codepoint (unicode code point), -1 on fail
-static uint32_t str_to_unicode_codepoint(char* string)
+static uint32_t str_to_unicode_codepoint(const char* string)
 {
     assert(string);
 

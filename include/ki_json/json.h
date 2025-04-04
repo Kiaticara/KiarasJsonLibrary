@@ -5,7 +5,7 @@
 
 // Contains what is needed to represent json trees, along with the functions neccessary for creating & interacting with them
 
-// Main ki_json structs
+#pragma region Structs & enums
 
 enum KI_JSON_VAL_TYPE
 {
@@ -67,7 +67,9 @@ struct ki_json_val
     };
 };
 
-// Json object functions
+#pragma endregion
+
+#pragma region Json object functions
 
 bool ki_json_object_init(struct ki_json_object* object, size_t capacity);
 void ki_json_object_fini(struct ki_json_object* object);
@@ -135,7 +137,9 @@ bool ki_json_object_set_bool(struct ki_json_object* object, const char* name, bo
 // Returns true on success, false on fail.
 bool ki_json_object_remove(struct ki_json_object* object, const char* name);
 
-// Json array functions
+#pragma endregion
+
+#pragma region Json array functions
 
 // TODO: implement json array
 
@@ -144,16 +148,91 @@ void ki_json_array_fini(struct ki_json_array* array);
 
 // Returns val at given index in json array.
 // Returns NULL on fail.
-/* struct ki_json_val* ki_json_array_at(struct ki_json_array* array, size_t index);
+struct ki_json_val* ki_json_array_at(struct ki_json_array* array, size_t index);
+// Returns json object at given index in json array.
+// Returns NULL on fail.
+struct ki_json_object* ki_json_array_object_at(struct ki_json_array* array, size_t index);
+// Returns json array at given index in json array.
+// Returns NULL on fail.
+struct ki_json_array* ki_json_array_array_at(struct ki_json_array* array, size_t index);
+// Returns string at given index in json array.
+// Returns NULL on fail.
+struct ki_string* ki_json_array_string_at(struct ki_json_array* array, size_t index);
+// TODO: what to do on fail? ki_json_array_get_number
+// Returns number at given index in json array.
+double ki_json_array_number_at(struct ki_json_array* array, size_t index);
+// TODO: what to do on fail? ki_json_array_get_bool
+// Returns bool at given index in json array.
+bool ki_json_array_bool_at(struct ki_json_array* array, size_t index);
 
+// Adds json value to json array at given index.
+// NOTE: Ownership of value is given to json array, and will free it once done.
+// Returns true on success, false on fail.
 bool ki_json_array_insert(struct ki_json_array* array, struct ki_json_val* value, size_t index);
+// Creates new json value for a json object and adds it to the json array at given index.
+// Returns NULL on fail.
+struct ki_json_val* ki_json_array_insert_new_object(struct ki_json_array* array, size_t index, size_t capacity);
+// Creates new json value for a json array and adds it to the json array at given index.
+// Returns NULL on fail.
+struct ki_json_val* ki_json_array_insert_new_array(struct ki_json_array* array, size_t index, size_t capacity);
+// Creates new json value for a string and adds it to the json array at given index.
+// NOTE: String is copied.
+// Returns NULL on fail.
+struct ki_json_val* ki_json_array_insert_new_string(struct ki_json_array* array, size_t index, const char* string);
+// Creates new json value for a number and adds it to the json array at given index.
+// Returns NULL on fail.
+struct ki_json_val* ki_json_array_insert_new_number(struct ki_json_array* array, size_t index, double number);
+// Creates new json value for a bool and adds it to the json array at given index.
+// Returns NULL on fail.
+struct ki_json_val* ki_json_array_insert_new_bool(struct ki_json_array* array, size_t index, bool boolean);
+// Creates new json value representing null and adds it to the json array at given index.
+// Returns NULL on fail.
+struct ki_json_val* ki_json_array_insert_new_null(struct ki_json_array* array, size_t index);
 
+// Adds json value to the end of a json array.
+// NOTE: Ownership of value is given to json array, and will free it once done.
+// Returns true on success, false on fail.
 bool ki_json_array_add(struct ki_json_array* array, struct ki_json_val* value);
+// Creates new json value for a json object and adds it to the end of a json array.
+// Returns NULL on fail.
+struct ki_json_val* ki_json_array_add_new_object(struct ki_json_array* array, size_t capacity);
+// Creates new json value for a json array and adds it to the end of a json array.
+// Returns NULL on fail.
+struct ki_json_val* ki_json_array_add_new_array(struct ki_json_array* array, size_t capacity);
+// Creates new json value for a string and adds it to the end of a json array.
+// NOTE: String is copied.
+// Returns NULL on fail.
+struct ki_json_val* ki_json_array_add_new_string(struct ki_json_array* array, const char* string);
+// Creates new json value for a number and adds it to the end of a json array.
+// Returns NULL on fail.
+struct ki_json_val* ki_json_array_add_new_number(struct ki_json_array* array, double number);
+// Creates new json value for a bool and adds it to the end of a json array.
+// Returns NULL on fail.
+struct ki_json_val* ki_json_array_add_new_bool(struct ki_json_array* array, bool boolean);
+// Creates new json value representing null and adds it to the end of a json array.
+// Returns NULL on fail.
+struct ki_json_val* ki_json_array_add_new_null(struct ki_json_array* array);
 
+// NOTE 1: Value must be of type KI_JSON_VAL_STRING.
+// NOTE 2: String is copied.
+// Returns true on success, false on fail.
+bool ki_json_array_set_string(struct ki_json_array* array, size_t index, const char* string);
+// NOTE: Value must be of type KI_JSON_VAL_NUMBER.
+// Returns true on success, false on fail.
+bool ki_json_array_set_number(struct ki_json_array* array, size_t index, double number);
+// NOTE: Value must be of type KI_JSON_VAL_BOOL.
+// Returns true on success, false on fail.
+bool ki_json_array_set_bool(struct ki_json_array* array, size_t index, bool boolean);
+
+// Returns true on success, false on fail.
 bool ki_json_array_remove_at(struct ki_json_array* array, size_t index);
-bool ki_json_array_remove(struct ki_json_array* array, struct ki_json_val* value); */
+// Removes first occurence of reference to given json value.
+// Returns true on success, false on fail.
+bool ki_json_array_remove(struct ki_json_array* array, struct ki_json_val* value);
 
-// Json val functions
+#pragma endregion
+
+#pragma region Json val functions
 
 // Creates a json value for a json object with given starting capacity.
 // Returns NULL on fail.
@@ -181,3 +260,5 @@ struct ki_json_val* ki_json_val_create_null();
 bool ki_json_val_set_string(struct ki_json_val* val, const char* string);
 
 void ki_json_val_free(struct ki_json_val* val);
+
+#pragma endregion
