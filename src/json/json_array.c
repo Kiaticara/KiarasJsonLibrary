@@ -150,8 +150,11 @@ bool ki_json_array_insert(struct ki_json_array* array, struct ki_json_val* value
         return false;
 
     //shift all items starting at given index to the right by one space
-    for (size_t i = array->count - 1; i >= index; i--)
-        array->values[i + 1] = array->values[i];
+    if (array->count != 0)
+    {
+        for (size_t i = array->count - 1; i >= index; i--)
+            array->values[i + 1] = array->values[i];
+    }
 
     array->values[index] = value;
     array->count++;

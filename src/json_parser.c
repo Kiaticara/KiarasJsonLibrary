@@ -442,13 +442,59 @@ static bool parse_null(struct json_reader* reader)
     return parse_literal(reader, "null", 4);
 }
 
+//forward declare parsing of values
+
+static bool parse_value(struct json_reader* reader, struct ki_json_val** val);
+
+// Parse next json array in the json string, using given uninit array.
+// Returns true on success, returns false on fail.
 static bool parse_array(struct json_reader* reader, struct ki_json_array* array)
 {
     assert(reader && array);
 
-    //TODO: implement parse_array
+    //invalid json array
+    if (!reader_can_access(reader, 0) || reader_char_at(reader, 0) != '[')
+        return false;
 
-    return false;
+    //alloc default capacity
+    ki_json_array_init(array, 5);
+
+    //parse values
+
+    reader->offset++; //skip first [
+
+    while (reader_can_access(reader, 0) && reader_char_at(reader, 0) != ']')
+    {
+        reader_skip_whitespace(reader);
+
+        #if KI_JSON_PARSER_VERBOSE
+        printf("Parsing array value index: %zu\n", array->count);
+        #endif
+
+        struct ki_json_val* val = NULL;
+
+        //if failed to parse value, return false
+        if (!parse_value(reader, &val))
+            return false;
+
+        ki_json_array_add(array, val);
+
+        reader_skip_whitespace(reader);
+
+        //comma separates next value
+        if (!reader_can_access(reader, 0) || reader_char_at(reader, 0) != ',')
+            break;
+
+        reader->offset++; //skip comma
+    }
+
+    //array never ended
+    if (!reader_can_access(reader, 0))
+        return false;
+
+    reader->offset++; //skip last ]
+
+    return true;
 }
 
 static bool parse_object(struct json_reader* reader, struct ki_json_object* object)
