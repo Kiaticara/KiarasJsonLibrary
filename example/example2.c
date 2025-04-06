@@ -118,6 +118,7 @@ int main(int argc, char** argv)
         printf("parsing %s\n", path);
 
         struct ki_json_val* val = ki_json_nparse_string(buffer, amount);
+        free(buffer);
 
         if (val != NULL)
         {

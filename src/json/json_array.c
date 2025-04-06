@@ -36,7 +36,7 @@ void ki_json_array_fini(struct ki_json_array* array)
     }
 
     array->count = 0;
-    array->capacity = 0;  
+    array->capacity = 0;
 }
 
 #pragma region Getting values

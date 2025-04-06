@@ -58,6 +58,18 @@ void ki_json_object_fini(struct ki_json_object* object)
 
     object->count = 0;
     object->capacity = 0;
+
+    if (object->names != NULL)
+    {
+        free(object->names);
+        object->names = NULL;
+    }
+    
+    if (object->values != NULL)
+    {
+        free(object->values);
+        object->values = NULL;
+    }
 }
 
 #pragma region Getting values
