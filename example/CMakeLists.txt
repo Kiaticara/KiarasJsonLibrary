@@ -16,3 +16,10 @@ set_target_properties(KiarasJsonLibraryExample PROPERTIES C_STANDARD 99 C_STANDA
 # target_compile_options(KiarasJsonLibraryExample PRIVATE -fsanitize=address)
 
 target_link_libraries(KiarasJsonLibraryExample KiarasJsonLibrary)
+
+#example 2
+
+add_executable(KiarasJsonLibraryExample2 "example2.c")
+
+set_target_properties(KiarasJsonLibraryExample2 PROPERTIES C_STANDARD 99 C_STANDARD_REQUIRED ON C_EXTENSIONS OFF)
+target_link_libraries(KiarasJsonLibraryExample2 KiarasJsonLibrary)
