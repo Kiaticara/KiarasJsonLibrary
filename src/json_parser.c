@@ -14,7 +14,7 @@
 
 struct json_reader
 {
-    char* json_string;
+    const char* json_string;
     // Length of json_string (excluding null terminator)
     size_t length; 
     // Current reader index offset
@@ -47,7 +47,7 @@ static char reader_char_at(struct json_reader* reader, size_t pos)
 }
 
 // returns buffer at index pos offsetted by reader's offset, NULL on fail
-static char* reader_buffer_at(struct json_reader* reader, size_t pos)
+static const char* reader_buffer_at(struct json_reader* reader, size_t pos)
 {
     assert(reader);
 
@@ -206,7 +206,7 @@ static char char_to_single_escape_sequence_char(char type)
 // converts escape sequence in (string) to utf8 bytes and output to (bytes) along with the length of read sequence
 // supports unicode code points \uXXXX (X = hex digit), converting to utf8
 // returns number of bytes written, 0 on fail
-static int escape_sequence_to_utf8(char* string, unsigned char* bytes, size_t buffer_size, size_t* sequence_length)
+static int escape_sequence_to_utf8(const char* string, unsigned char* bytes, size_t buffer_size, size_t* sequence_length)
 {
     assert(string && bytes && buffer_size > 0 && sequence_length);
 
@@ -251,9 +251,9 @@ static int escape_sequence_to_utf8(char* string, unsigned char* bytes, size_t bu
 
 #pragma region Parsing
 
-// parse next quoted string in json string,
-// string must be free'd once donce,
-// returns true on success, and outs string and buffer size (not including null terminator); and false on fail
+// Parse next quoted string in json string.
+// String must be freed once done.
+// Returns true on success, and outs string and buffer size (not including null terminator); and false on fail
 static bool parse_string(struct json_reader* reader, char** string, size_t* buffer_size)
 {
     assert(reader && string && buffer_size);
@@ -307,7 +307,7 @@ static bool parse_string(struct json_reader* reader, char** string, size_t* buff
         //start of an escape sequence
         if (bytes[0] == '\\')
         {
-            char* read_buffer = reader_buffer_at(reader, reader_pos);
+            const char* read_buffer = reader_buffer_at(reader, reader_pos);
 
             //NOTE: the cast to unsigned char* is a bit weird, but it seems to be my only choice for utf8
             num_bytes = escape_sequence_to_utf8(read_buffer, (unsigned char*)bytes, CHARACTER_MAX_BUFFER_SIZE, &sequence_length);
@@ -355,12 +355,11 @@ static bool parse_string(struct json_reader* reader, char** string, size_t* buff
     return true;
 }
 
-
 static bool parse_number(struct json_reader* reader, double* number)
 {
     assert(reader && number);
 
-    char* buffer = reader_buffer_at(reader, 0);
+    const char* buffer = reader_buffer_at(reader, 0);
 
     if (buffer == NULL)
         return false;
@@ -444,6 +443,9 @@ static bool parse_null(struct json_reader* reader)
 
 //forward declare parsing of values
 
+// Parses next json value in the json string.
+// Val must be freed using ki_json_val_free() when done.
+// Returns true on success and outs val (ki_json_val), returns false on fail.
 static bool parse_value(struct json_reader* reader, struct ki_json_val** val);
 
 // Parse next json array in the json string, using given uninit array.
@@ -491,7 +493,7 @@ static bool parse_array(struct json_reader* reader, struct ki_json_array* array)
     }
 
     //array never ended
-    if (!reader_can_access(reader, 0))
+    if (!reader_can_access(reader, 0) || reader_char_at(reader, 0) != ']')
         return false;
 
     reader->offset++; //skip last ]
@@ -499,17 +501,129 @@ static bool parse_array(struct json_reader* reader, struct ki_json_array* array)
     return true;
 }
 
+// Parses next name of a pair in a json object.
+// Name must be freed when done.
+// Returns true on success and outs name, false on fail.
+// Supported formats: "name" AND name
+static bool parse_name(struct json_reader* reader, char** name)
+{
+    assert(reader && name);
+
+    //if starts with quote, parse name just like a string instead
+    if (reader_can_access(reader, 0) && reader_char_at(reader, 0) == '\"')
+    {
+        size_t buffer_size = 0;
+        return parse_string(reader, name, &buffer_size);
+    }
+
+    size_t name_length = 0;
+
+    while (reader_can_access(reader, name_length) && reader_char_at(reader, name_length) != ':' && !char_is_whitespace(reader_char_at(reader, name_length)))
+        name_length++;
+
+    //name never ended
+    if (!reader_can_access(reader, name_length))
+        return false;
+
+    //alloc name
+    char* new_name = calloc(name_length + 1, sizeof(*new_name));
+
+    //alloc fail
+    if (new_name == NULL)
+        return false;
+
+    //read in name
+    for (size_t i = 0; i < name_length; i++)
+        new_name[i] = reader_char_at(reader, i);
+
+    new_name[name_length] = '\0'; //null-terminator
+
+    //out
+    *name = new_name;
+
+    reader->offset += name_length;
+
+    return true;
+}
+
+// Parse next json object in the json string, using given uninit object.
+// Returns true on success, returns false on fail.
 static bool parse_object(struct json_reader* reader, struct ki_json_object* object)
 {
     assert(reader && object);
 
-    //TODO: implement parse_object
+    //invalid json object
+    if (!reader_can_access(reader, 0) || reader_char_at(reader, 0) != '{')
+        return false;
 
-    return false;
+    //alloc default capacity
+    ki_json_object_init(object, 5);
+
+    //parse values
+    reader->offset++; //skip first {
+
+    reader_skip_whitespace(reader);
+
+    while (reader_can_access(reader, 0) && reader_char_at(reader, 0) != '}')
+    {
+        char* name = NULL;
+
+        if (!parse_name(reader, &name))
+            return false;
+
+        reader_skip_whitespace(reader);
+
+        //colon separates name and value
+        if (!reader_can_access(reader, 0) || reader_char_at(reader, 0) != ':')
+        {
+            free(name);
+            return false;
+        }
+
+        #if KI_JSON_PARSER_VERBOSE
+        printf("Parsing object pair: %s\n", name);
+        #endif
+
+        reader->offset++; //skip :
+
+        reader_skip_whitespace(reader);
+
+        //parse value
+
+        struct ki_json_val* val = NULL;
+
+        if (!parse_value(reader, &val))
+        {
+            free(name);
+            return false;
+        }
+
+        ki_json_object_add(object, name, val);
+        free(name); //name is copied, so we no longer need the original
+
+        reader_skip_whitespace(reader);
+
+        //comma separates next value
+        if (!reader_can_access(reader, 0) || reader_char_at(reader, 0) != ',')
+            break;
+
+        reader->offset++; //skip comma
+
+        reader_skip_whitespace(reader);
+    }
+
+    //object never ended
+    if (!reader_can_access(reader, 0) || reader_char_at(reader, 0) != '}')
+        return false;
+
+    reader->offset++; //skip last }
+
+    return true;
 }
 
-// parses next json value in the json string
-// returns true on success and outs val (ki_json_val), returns false on fail
+// Parses next json value in the json string.
+// Val must be freed using ki_json_val_free() when done.
+// Returns true on success and outs val (ki_json_val), returns false on fail.
 static bool parse_value(struct json_reader* reader, struct ki_json_val** val)
 {
     assert(reader && val);
