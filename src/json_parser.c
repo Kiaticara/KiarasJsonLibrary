@@ -463,10 +463,10 @@ static bool parse_array(struct json_reader* reader, struct ki_json_array* array)
 
     reader->offset++; //skip first [
 
+    reader_skip_whitespace(reader);
+
     while (reader_can_access(reader, 0) && reader_char_at(reader, 0) != ']')
     {
-        reader_skip_whitespace(reader);
-
         #if KI_JSON_PARSER_VERBOSE
         printf("Parsing array value index: %zu\n", array->count);
         #endif
@@ -486,6 +486,8 @@ static bool parse_array(struct json_reader* reader, struct ki_json_array* array)
             break;
 
         reader->offset++; //skip comma
+
+        reader_skip_whitespace(reader);
     }
 
     //array never ended
