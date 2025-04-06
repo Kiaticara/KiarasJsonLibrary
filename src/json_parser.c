@@ -700,4 +700,48 @@ static bool parse_value(struct json_reader* reader, struct ki_json_val** val)
     return success;
 }
 
+// Parse null-terminated string to a json tree.
+// Val returned must be freed when done.
+// Returns NULL on fail.
+struct ki_json_val* ki_json_parse_string(const char* string)
+{
+    size_t length = strlen(string);
+
+    struct json_reader reader = {string, length, 0};
+
+    struct ki_json_val* val = NULL;
+    bool success = parse_value(&reader, &val);
+
+    if (!success && val != NULL)
+    {
+        ki_json_val_free(val);
+        return NULL;
+    }
+    else 
+    {
+        return val;
+    }
+}
+
+// Parse no more than n characters of string to a json tree.
+// Val returned must be freed when done.
+// Returns NULL on fail.
+struct ki_json_val* ki_json_nparse_string(const char* string, size_t n)
+{
+    struct json_reader reader = {string, n, 0};
+
+    struct ki_json_val* val = NULL;
+    bool success = parse_value(&reader, &val);
+
+    if (!success && val != NULL)
+    {
+        ki_json_val_free(val);
+        return NULL;
+    }
+    else 
+    {
+        return val;
+    }
+}
+
 #pragma endregion
