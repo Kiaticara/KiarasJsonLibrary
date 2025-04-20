@@ -86,7 +86,6 @@ static char* buffer_buffer_at(struct print_buffer* buffer, size_t pos)
 
 #pragma region Printing
 
-//TODO: print number
 //TODO: print boolean
 //TODO: print null
 //TODO: print json-formatted string
@@ -110,5 +109,23 @@ static bool print_string(struct print_buffer* buffer, const char* string, size_t
     buffer->offset += length;
 
     return true;
+}
+
+// Prints number into print buffer.
+// Returns true on success, and false on fail.
+static bool print_number(struct print_buffer* buffer, double number)
+{
+    if (buffer == NULL)
+        return false;
+
+    const size_t NUM_MAX_LENGTH = 128;
+    
+    char number_string[NUM_MAX_LENGTH];
+    size_t length = snprintf(number_string, NUM_MAX_LENGTH - 1, "%e", number);
+
+    if (length == 0 || length >= NUM_MAX_LENGTH)
+        return false;
+
+    return print_string(buffer, number_string, length);
 }
 
