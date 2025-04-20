@@ -86,7 +86,6 @@ static char* buffer_buffer_at(struct print_buffer* buffer, size_t pos)
 
 #pragma region Printing
 
-//TODO: print unformatted string
 //TODO: print number
 //TODO: print boolean
 //TODO: print null
@@ -94,4 +93,22 @@ static char* buffer_buffer_at(struct print_buffer* buffer, size_t pos)
 //TODO: print json array
 //TODO: print json object
 //TODO: print json value
+
+// Prints unformatted string into print buffer.
+// Returns true on success, and false on fail.
+static bool print_string(struct print_buffer* buffer, const char* string, size_t length)
+{
+    if (buffer == NULL || string == NULL)
+        return false;
+
+    if (!buffer_can_access(buffer, length - 1))
+        return false;
+
+    for (size_t i = 0; i < length; i++)
+        buffer_set_at(buffer, i, string[i]);
+
+    buffer->offset += length;
+
+    return true;
+}
 
