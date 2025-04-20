@@ -86,7 +86,6 @@ static char* buffer_buffer_at(struct print_buffer* buffer, size_t pos)
 
 #pragma region Printing
 
-//TODO: print boolean
 //TODO: print null
 //TODO: print json-formatted string
 //TODO: print json array
@@ -127,5 +126,29 @@ static bool print_number(struct print_buffer* buffer, double number)
         return false;
 
     return print_string(buffer, number_string, length);
+}
+
+// Prints boolean into print buffer.
+// Returns true on success, and false on fail.
+static bool print_boolean(struct print_buffer* buffer, bool boolean)
+{
+    if (buffer == NULL)
+        return false;
+
+    const char* boolean_string = "";
+    size_t length = 0;
+
+    if (boolean)
+    {
+        boolean_string = "true";
+        length = 4;
+    }
+    else 
+    {
+        boolean_string = "false";
+        length = 5;
+    }
+
+    return print_string(buffer, boolean_string, length);
 }
 
