@@ -21,7 +21,7 @@ struct json_reader
     size_t offset;
 };
 
-// returns true if character is a space, horizontal tab, line feed/break or carriage return, else false.
+// Returns true if character is a space, horizontal tab, line feed/break or carriage return, else false.
 static bool char_is_whitespace(char character)
 {
     return (character == ' ') || (character == '\t') || (character == '\n') || (character == '\r');
@@ -29,13 +29,16 @@ static bool char_is_whitespace(char character)
 
 #pragma region Reader
 
-// can reader access char at index pos offsetted by the reader's offset?
+// Can reader access char at index pos offsetted by the reader's offset?
 static bool reader_can_access(struct json_reader* reader, size_t pos)
 {
+    if (reader == NULL)
+        return false;
+    
     return (reader->offset + pos < reader->length);
 }
 
-// reads char in json string at index pos offsetted by the reader's offset, returns \0 on fail
+// Reads char in json string at index pos offsetted by the reader's offset, returns \0 on fail.
 static char reader_char_at(struct json_reader* reader, size_t pos)
 {
     assert(reader);
@@ -46,7 +49,7 @@ static char reader_char_at(struct json_reader* reader, size_t pos)
     return reader->json_string[reader->offset + pos];
 }
 
-// returns buffer at index pos offsetted by reader's offset, NULL on fail
+// Returns buffer at index pos offsetted by reader's offset, NULL on fail.
 static const char* reader_buffer_at(struct json_reader* reader, size_t pos)
 {
     assert(reader);
@@ -69,7 +72,7 @@ static void reader_skip_whitespace(struct json_reader* reader)
 
 #pragma region Conversions
 
-// converts a hexidecimal digit to int, -1 if not a hexidecimal digit
+// Converts a hexidecimal digit to int, -1 if not a hexidecimal digit.
 static int hex_digit_to_int(char hex_digit)
 {
     //calculate using ASCII table
@@ -84,9 +87,9 @@ static int hex_digit_to_int(char hex_digit)
         return -1;
 }
 
-// parse a unicode code point in a string
-// only XXXX format is supported, where each X is a hex digit
-// returns codepoint (unicode code point), -1 on fail
+// Parse a unicode code point in a string.
+// Only XXXX format is supported, where each X is a hex digit.
+// Returns codepoint (unicode code point), -1 on fail.
 static uint32_t str_to_unicode_codepoint(const char* string)
 {
     assert(string);
@@ -109,8 +112,8 @@ static uint32_t str_to_unicode_codepoint(const char* string)
     return codepoint;
 }
 
-// convert an unicode code point to utf8 bytes
-// returns number of bytes written, 0 on fail
+// Convert an unicode code point to utf8 bytes.
+// Returns number of bytes written, 0 on fail.
 static int unicode_codepoint_to_utf8(uint32_t codepoint, unsigned char* utf8, int buffer_size)
 {
     assert(utf8);
@@ -177,9 +180,9 @@ static int unicode_codepoint_to_utf8(uint32_t codepoint, unsigned char* utf8, in
     return bytes;
 }
 
-// escapes given char with a backslash (n -> \n, r -> \r, ...)
-// does not support \u, nor any character escape sequences that aren't used in json
-// returns '\0' on fail
+// Escapes given char with a backslash (n -> \n, r -> \r, ...).
+// Does not support \u, nor any character escape sequences that aren't used in json.
+// Returns '\0' on fail.
 static char char_to_single_escape_sequence_char(char type)
 {
     switch(type) //escape char type
@@ -203,9 +206,9 @@ static char char_to_single_escape_sequence_char(char type)
     }
 }
 
-// converts escape sequence in (string) to utf8 bytes and output to (bytes) along with the length of read sequence
-// supports unicode code points \uXXXX (X = hex digit), converting to utf8
-// returns number of bytes written, 0 on fail
+// Converts escape sequence in (string) to utf8 bytes and output to (bytes) along with the length of read sequence.
+// Supports unicode code points \uXXXX (X = hex digit), converting to utf8.
+// Returns number of bytes written, 0 on fail.
 static int escape_sequence_to_utf8(const char* string, unsigned char* bytes, size_t buffer_size, size_t* sequence_length)
 {
     assert(string && bytes && buffer_size > 0 && sequence_length);
@@ -251,7 +254,7 @@ static int escape_sequence_to_utf8(const char* string, unsigned char* bytes, siz
 
 #pragma region Parsing
 
-// Parse next quoted string in json string.
+// Parse next single-quoted json-formatted string in json string.
 // String must be freed once done.
 // Returns true on success, and outs string and buffer size (not including null terminator); and false on fail
 static bool parse_string(struct json_reader* reader, char** string, size_t* buffer_size)
@@ -355,6 +358,8 @@ static bool parse_string(struct json_reader* reader, char** string, size_t* buff
     return true;
 }
 
+// Parse next given number in the json string.
+// Returns true on success, returns false on fail.
 static bool parse_number(struct json_reader* reader, double* number)
 {
     assert(reader && number);
@@ -374,8 +379,8 @@ static bool parse_number(struct json_reader* reader, double* number)
     return endptr != buffer;
 }
 
-// parse next given literal in the json string
-// returns true on success, returns false on fail
+// Parse next given literal in the json string.
+// Returns true on success, returns false on fail.
 static bool parse_literal(struct json_reader* reader, const char* literal, size_t literal_length)
 {
     if (!reader_can_access(reader, literal_length - 1))
@@ -393,8 +398,8 @@ static bool parse_literal(struct json_reader* reader, const char* literal, size_
     return true;
 }
 
-// parse next bool in the json string,
-// returns true on success and outs boolean, returns false on fail
+// Parse next bool in the json string.
+// Returns true on success and outs boolean, returns false on fail.
 static bool parse_boolean(struct json_reader* reader, bool* boolean)
 {
     assert(reader && boolean);
@@ -432,8 +437,8 @@ static bool parse_boolean(struct json_reader* reader, bool* boolean)
     return true;
 }
 
-// parses next null character sequence (as in 4 actual characters) in the json string
-// returns true if found, false if not
+// Parses next null character sequence (as in 4 actual characters) in the json string.
+// Returns true if found, false if not.
 static bool parse_null(struct json_reader* reader)
 {
     assert(reader);
