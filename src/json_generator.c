@@ -86,7 +86,6 @@ static char* buffer_buffer_at(struct print_buffer* buffer, size_t pos)
 
 #pragma region Printing
 
-//TODO: print null
 //TODO: print json-formatted string
 //TODO: print json array
 //TODO: print json object
@@ -152,3 +151,12 @@ static bool print_boolean(struct print_buffer* buffer, bool boolean)
     return print_string(buffer, boolean_string, length);
 }
 
+// Prints null (n-u-l-l, not the NULL character) into print buffer.
+// Returns true on success, and false on fail.
+static bool print_null(struct print_buffer* buffer)
+{
+    if (buffer == NULL)
+        return false;
+
+    return print_string(buffer, "null", 4);
+}
