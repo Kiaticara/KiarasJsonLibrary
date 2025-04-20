@@ -1,8 +1,6 @@
 #pragma once
 
-//Functions for parsing a json string to a json tree
-
-//TODO: implement json parser functions
+// Functions for parsing a json string to a json tree
 
 #include <stddef.h>
 #include <stdio.h>
