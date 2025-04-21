@@ -13,7 +13,7 @@
 //Just for testing static parser functions
 #include "../src/json_parser.c"
 
-int main()
+int main(void)
 {
     //TODO: example should do null checks for json objects & nodes
     
@@ -30,20 +30,20 @@ int main()
     struct ki_json_val* val_num1 = ki_json_val_create_from_number(5.2);
     struct ki_json_val* val_num2 = ki_json_val_create_from_number(-202.2);
     
-    printf("number node 1 val: %f\n", val_num1->number);
-    printf("number node 2 val: %f\n", val_num2->number);
+    printf("number node 1 val: %f\n", val_num1->value.number);
+    printf("number node 2 val: %f\n", val_num2->value.number);
 
     printf("adding existing values to json object\n");
 
-    ki_json_object_add(&val_object->object, "test1", val_null);
-    ki_json_object_add(&val_object->object, "test2", val_num1);
-    ki_json_object_add(&val_object->object, "test3", val_num2);
+    ki_json_object_add(&val_object->value.object, "test1", val_null);
+    ki_json_object_add(&val_object->value.object, "test2", val_num1);
+    ki_json_object_add(&val_object->value.object, "test3", val_num2);
 
     printf("adding new nodes to json object\n");
 
-    ki_json_object_add_new_bool(&val_object->object, "test4", true);
-    ki_json_object_add_new_string(&val_object->object, "test5", "abc");
-    ki_json_object_add_new_number(&val_object->object, "test6", 3.3);
+    ki_json_object_add_new_bool(&val_object->value.object, "test4", true);
+    ki_json_object_add_new_string(&val_object->value.object, "test5", "abc");
+    ki_json_object_add_new_number(&val_object->value.object, "test6", 3.3);
     
     printf("destroying json object val\n");
     ki_json_val_free(val_object);

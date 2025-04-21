@@ -60,7 +60,7 @@ struct ki_json_object* ki_json_array_object_at(struct ki_json_array* array, size
     if (val == NULL || val->type != KI_JSON_VAL_OBJECT)
         return NULL;
 
-    return &val->object;
+    return &val->value.object;
 }
 
 // Returns json array at given index in json array.
@@ -72,7 +72,7 @@ struct ki_json_array* ki_json_array_array_at(struct ki_json_array* array, size_t
     if (val == NULL || val->type != KI_JSON_VAL_ARRAY)
         return NULL;
 
-    return &val->array;
+    return &val->value.array;
 }
 
 // Returns string at given index in json array.
@@ -84,7 +84,7 @@ struct ki_string* ki_json_array_string_at(struct ki_json_array* array, size_t in
     if (val == NULL || val->type != KI_JSON_VAL_STRING)
         return NULL;
 
-    return &val->string;
+    return &val->value.string;
 }
 
 // TODO: what to do on fail? ki_json_array_get_number
@@ -96,7 +96,7 @@ double ki_json_array_number_at(struct ki_json_array* array, size_t index)
     if (val == NULL || val->type != KI_JSON_VAL_NUMBER)
         return 0.0;
 
-    return val->number;
+    return val->value.number;
 }
 
 // TODO: what to do on fail? ki_json_array_get_bool
@@ -108,7 +108,7 @@ bool ki_json_array_bool_at(struct ki_json_array* array, size_t index)
     if (val == NULL || val->type != KI_JSON_VAL_BOOL)
         return false;
 
-    return val->boolean;
+    return val->value.boolean;
 }
 
 #pragma endregion
@@ -371,7 +371,7 @@ bool ki_json_array_set_number(struct ki_json_array* array, size_t index, double 
     if (val == NULL || val->type != KI_JSON_VAL_NUMBER)
         return false;
 
-    val->number = number;
+    val->value.number = number;
 
     return true;
 }
@@ -385,7 +385,7 @@ bool ki_json_array_set_bool(struct ki_json_array* array, size_t index, bool bool
     if (val == NULL || val->type != KI_JSON_VAL_BOOL)
         return false;
 
-    val->boolean = boolean;
+    val->value.boolean = boolean;
 
     return true;
 }
@@ -404,7 +404,7 @@ bool ki_json_array_remove_at(struct ki_json_array* array, size_t index)
 
     //move values to right of it back one space, overwriting index with free'd value
 
-    for (int i = index + 1; i < array->count; i++)
+    for (size_t i = index + 1; i < array->count; i++)
         array->values[i - 1] = array->values[i];    
 
     array->values[array->count - 1] = NULL;
@@ -418,7 +418,7 @@ bool ki_json_array_remove_at(struct ki_json_array* array, size_t index)
 bool ki_json_array_remove(struct ki_json_array* array, struct ki_json_val* value)
 {
     //find index of reference to value, and remove it at that index
-    for (int i = 0; i < array->count; i++)
+    for (size_t i = 0; i < array->count; i++)
     {
         if (array->values[i] == value)
         {

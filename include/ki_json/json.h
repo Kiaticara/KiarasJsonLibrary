@@ -64,7 +64,7 @@ struct ki_json_val
         double number;
         bool boolean;
         bool null; 
-    };
+    } value;
 };
 
 #pragma endregion
@@ -254,7 +254,7 @@ struct ki_json_val* ki_json_val_create_from_number(double number);
 struct ki_json_val* ki_json_val_create_from_bool(bool boolean);
 // Creates a json value representing null.
 // Returns NULL on fail.
-struct ki_json_val* ki_json_val_create_null();
+struct ki_json_val* ki_json_val_create_null(void);
 
 // NOTE 1: ki_json_value must be of type KI_JSON_VAL_STRING.
 // NOTE 2: String is copied.

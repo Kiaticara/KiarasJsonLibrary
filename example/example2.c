@@ -13,13 +13,13 @@ static void print_val(struct ki_json_val* val, int depth)
     {
         case KI_JSON_VAL_OBJECT:
             printf("{\n");
-            for (size_t i = 0; i < val->object.count; i++)
+            for (size_t i = 0; i < val->value.object.count; i++)
             {  
                 for (int j = 0; j <= depth; j++)
                     printf("\t");
 
-                printf("%s: ", val->object.names[i]);
-                print_val(val->object.values[i], depth + 1);
+                printf("%s: ", val->value.object.names[i]);
+                print_val(val->value.object.values[i], depth + 1);
                 printf("\n");
             }
 
@@ -30,13 +30,13 @@ static void print_val(struct ki_json_val* val, int depth)
             break;
         case KI_JSON_VAL_ARRAY:
             printf("[\n");
-            for (size_t i = 0; i < val->array.count; i++)
+            for (size_t i = 0; i < val->value.array.count; i++)
             {  
                 for (int j = 0; j <= depth; j++)
                     printf("\t");
 
                 printf("%zu: ", i);
-                print_val(val->array.values[i], depth + 1);
+                print_val(val->value.array.values[i], depth + 1);
                 printf("\n");
             }
 
@@ -46,13 +46,13 @@ static void print_val(struct ki_json_val* val, int depth)
             printf("]");
             break;
         case KI_JSON_VAL_STRING:
-            printf("\"%s\"", val->string.bytes);
+            printf("\"%s\"", val->value.string.bytes);
             break;
         case KI_JSON_VAL_NUMBER:
-            printf("%f", val->number);
+            printf("%f", val->value.number);
             break;
         case KI_JSON_VAL_BOOL:
-            printf("%i", val->boolean);
+            printf("%i", val->value.boolean);
             break;
         case KI_JSON_VAL_NULL:
             printf("null");

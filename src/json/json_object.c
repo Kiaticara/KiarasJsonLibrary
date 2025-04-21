@@ -9,7 +9,7 @@
 // Frees data of pair at index.
 // NOTE: data of pair at index should be overwritten after calling this function.
 // Returns true on success, false on fail.
-static bool ki_json_object_free_pair_index(struct ki_json_object* object, int index)
+static bool ki_json_object_free_pair_index(struct ki_json_object* object, size_t index)
 {
     if (index < 0 || index >= object->count)
         return false;
@@ -53,7 +53,7 @@ void ki_json_object_fini(struct ki_json_object* object)
 {
     assert(object);
     
-    for (int i = 0; i < object->count; i++)
+    for (size_t i = 0; i < object->count; i++)
         ki_json_object_free_pair_index(object, i);
 
     object->count = 0;
@@ -80,7 +80,7 @@ struct ki_json_val* ki_json_object_get(struct ki_json_object* object, const char
 {
     assert(object && name);
 
-    for (int i = 0; i < object->count; i++)
+    for (size_t i = 0; i < object->count; i++)
     {
         if (strcmp(object->names[i], name) == 0)
             return object->values[i];
@@ -100,7 +100,7 @@ struct ki_json_object* ki_json_object_get_object(struct ki_json_object* object, 
     if (val == NULL || val->type != KI_JSON_VAL_OBJECT)
         return NULL;
 
-    return &val->object;
+    return &val->value.object;
 }
 
 // Returns json array with given name in json object.
@@ -114,7 +114,7 @@ struct ki_json_array* ki_json_object_get_array(struct ki_json_object* object, co
     if (val == NULL || val->type != KI_JSON_VAL_ARRAY)
         return NULL;
 
-    return &val->array;
+    return &val->value.array;
 }
 
 // Returns string with given name in json object.
@@ -128,7 +128,7 @@ struct ki_string* ki_json_object_get_string(struct ki_json_object* object, const
     if (val == NULL || val->type != KI_JSON_VAL_STRING)
         return NULL;
 
-    return &val->string;
+    return &val->value.string;
 }
 
 // TODO: what to do on fail? ki_json_object_get_number
@@ -142,7 +142,7 @@ double ki_json_object_get_number(struct ki_json_object* object, const char* name
     if (val == NULL || val->type != KI_JSON_VAL_NUMBER)
         return 0.0;
 
-    return val->number;
+    return val->value.number;
 }
 
 // TODO: what to do on fail? ki_json_object_get_bool
@@ -156,7 +156,7 @@ bool ki_json_object_get_bool(struct ki_json_object* object, const char* name)
     if (val == NULL || val->type != KI_JSON_VAL_BOOL)
         return false;
 
-    return val->boolean;
+    return val->value.boolean;
 }
 
 #pragma endregion
@@ -182,7 +182,7 @@ static bool ki_json_object_expand(struct ki_json_object* object)
     }
 
     // fill new spots with NULL
-    for (int i = object->capacity; i < object->capacity * 2; i++)
+    for (size_t i = object->capacity; i < object->capacity * 2; i++)
     {
         new_names[i] = NULL;
         new_values[i] = NULL;
@@ -348,7 +348,7 @@ bool ki_json_object_set_number(struct ki_json_object* object, const char* name, 
     if (val == NULL || val->type != KI_JSON_VAL_NUMBER)
         return false;
 
-    val->number = number;
+    val->value.number = number;
 
     return true;
 }
@@ -362,7 +362,7 @@ bool ki_json_object_set_bool(struct ki_json_object* object, const char* name, bo
     if (val == NULL || val->type != KI_JSON_VAL_BOOL)
         return false;
 
-    val->boolean = boolean;
+    val->value.boolean = boolean;
 
     return true;
 }
@@ -377,7 +377,7 @@ bool ki_json_object_remove(struct ki_json_object* object, const char* name)
 
     int index = -1;
     
-    for (int i = 0; i < object->count; i++)
+    for (size_t i = 0; i < object->count; i++)
     {
         if (strcmp(object->names[i], name) == 0)
         {
@@ -395,7 +395,7 @@ bool ki_json_object_remove(struct ki_json_object* object, const char* name)
 
     //move pairs to right of it back one space, overwriting index with freed pair
 
-    for (int i = index + 1; i < object->count; i++)
+    for (size_t i = index + 1; i < object->count; i++)
     {
         object->names[i - 1] = object->names[i];
         object->values[i - 1] = object->values[i];    

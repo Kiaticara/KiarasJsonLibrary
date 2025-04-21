@@ -20,6 +20,7 @@ struct print_buffer
 
 // Returns length of string with max length of maxlen.
 // This should be safer.
+// C11 has strnlen_s & POSIX has strnlen, but this is C99.
 static size_t ki_strnlen(const char* string, size_t maxlen)
 {
     if (string == NULL)
@@ -107,13 +108,13 @@ static int utf8_amount_of_bytes(unsigned char byte)
 
     if (byte >> 7 == 0)
         return 1;
-    else if (byte >> 6 == 0b10) //not first byte
+    else if (byte >> 6 == 2) //0b10 not first byte
         return -1;
-    else if (byte >> 5 == 0b110)
+    else if (byte >> 5 == 6) //0b110
         return 2;
-    else if (byte >> 4 == 0b1110)
+    else if (byte >> 4 == 14) //0b1110
         return 3;
-    else if (byte >> 3 == 0b11110)
+    else if (byte >> 3 == 31) //0b11110
         return 4;
     else
         return 0;
@@ -273,11 +274,11 @@ static bool print_value(struct print_buffer* buffer, struct ki_json_val* val)
     switch(val->type)
     {
         case KI_JSON_VAL_STRING:
-            return print_formatted_string(buffer, &val->string);
+            return print_formatted_string(buffer, &val->value.string);
         case KI_JSON_VAL_NUMBER:
-            return print_number(buffer, val->number);
+            return print_number(buffer, val->value.number);
         case KI_JSON_VAL_BOOL:
-            return print_boolean(buffer, val->boolean);
+            return print_boolean(buffer, val->value.boolean);
         case KI_JSON_VAL_NULL:
             return print_null(buffer);
         //TODO: case KI_JSON_VAL_ARRAY:

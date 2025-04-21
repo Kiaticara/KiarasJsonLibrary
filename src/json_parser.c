@@ -651,29 +651,29 @@ static bool parse_value(struct json_reader* reader, struct ki_json_val** val)
         //string
         case '\"':
             new_val->type = KI_JSON_VAL_STRING;
-            success = parse_string(reader, &new_val->string.bytes, &new_val->string.buffer_size);
+            success = parse_string(reader, &new_val->value.string.bytes, &new_val->value.string.buffer_size);
             break;
         //boolean
         case 't':
         case 'f':
             new_val->type = KI_JSON_VAL_BOOL;
-            success = parse_boolean(reader, &new_val->boolean);
+            success = parse_boolean(reader, &new_val->value.boolean);
             break;   
         //json object (ki_json_object)
         case '{':
             new_val->type = KI_JSON_VAL_OBJECT;
-            success = parse_object(reader, &new_val->object);
+            success = parse_object(reader, &new_val->value.object);
             break;
         //json array (ki_json_array)
         case '[':
             new_val->type = KI_JSON_VAL_ARRAY;
-            success = parse_array(reader, &new_val->array);
+            success = parse_array(reader, &new_val->value.array);
             break;
         //null
         case 'n':
             new_val->type = KI_JSON_VAL_NULL;
             success = parse_null(reader);
-            new_val->null = success;
+            new_val->value.null = success;
             break;
         //number
         case '0':
@@ -691,7 +691,7 @@ static bool parse_value(struct json_reader* reader, struct ki_json_val** val)
         case 'E':
         case '.':
             new_val->type = KI_JSON_VAL_NUMBER;
-            success = parse_number(reader, &new_val->number);
+            success = parse_number(reader, &new_val->value.number);
             break;
         default:
             break;
