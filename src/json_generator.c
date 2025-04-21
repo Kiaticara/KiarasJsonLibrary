@@ -160,3 +160,26 @@ static bool print_null(struct print_buffer* buffer)
 
     return print_string(buffer, "null", 4);
 }
+
+// Prints json value into print buffer.
+// Returns true on success, and false on fail.
+static bool print_value(struct print_buffer* buffer, struct ki_json_val* val)
+{
+    if (buffer == NULL || val == NULL)
+        return false;
+
+    switch(val->type)
+    {
+        case KI_JSON_VAL_NUMBER:
+            return print_number(buffer, val->number);
+        case KI_JSON_VAL_BOOL:
+            return print_boolean(buffer, val->boolean);
+        case KI_JSON_VAL_NULL:
+            return print_null(buffer);
+        //TODO: case KI_JSON_VAL_ARRAY:
+        //TODO: case KI_JSON_VAL_OBJECT:
+        //TODO: case KI_JSON_VAL_STRING:
+        default:
+            return false;
+    }
+}
