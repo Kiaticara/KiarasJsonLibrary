@@ -134,21 +134,10 @@ static bool print_boolean(struct print_buffer* buffer, bool boolean)
     if (buffer == NULL)
         return false;
 
-    const char* boolean_string = "";
-    size_t length = 0;
-
     if (boolean)
-    {
-        boolean_string = "true";
-        length = 4;
-    }
+        return print_string(buffer, "true", 4);
     else 
-    {
-        boolean_string = "false";
-        length = 5;
-    }
-
-    return print_string(buffer, boolean_string, length);
+        return print_string(buffer, "false", 5);
 }
 
 // Prints null (n-u-l-l, not the NULL character) into print buffer.
