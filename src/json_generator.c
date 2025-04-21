@@ -75,7 +75,25 @@ static char* buffer_buffer_at(struct print_buffer* buffer, size_t pos)
 
 #pragma endregion
 
-#pragma region utf-8
+#pragma region Encodings
+
+// Returns true if ASCII character should be escaped, otherwise returns false.
+static bool ascii_char_should_escape(char character)
+{
+    switch(character)
+    {
+        case '\"': //double quotation marks
+        case '\\': //reverse solidus
+        case '\b': //backspace
+        case '\f': //form feed
+        case '\n': //line feed, line break
+        case '\r': //carriage return
+        case '\t': //horizontal tab
+            return true;
+        default:
+            return false;
+    }
+}
 
 // Returns the amount of bytes a utf8 character will have from the starting byte.
 // Returns 0 if invalid, or -1 if a byte is given that is not the starting byte.
