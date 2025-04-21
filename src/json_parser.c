@@ -89,7 +89,7 @@ static int hex_digit_to_int(char hex_digit)
 
 // Parse a unicode code point in a string.
 // Only XXXX format is supported, where each X is a hex digit.
-// Returns codepoint (unicode code point), -1 on fail.
+// Returns codepoint (unicode code point), 0 on fail.
 static uint32_t str_to_unicode_codepoint(const char* string)
 {
     assert(string);
@@ -103,7 +103,7 @@ static uint32_t str_to_unicode_codepoint(const char* string)
 
         //digit must be valid
         if (digit == -1)
-            return -1;
+            return 0;
 
         codepoint <<= 4; //shift 4 bits to left, adding 4 zero-bits at the end
         codepoint += (uint32_t)digit; //fill those zero-bits
@@ -146,9 +146,9 @@ static int unicode_codepoint_to_utf8(uint32_t codepoint, unsigned char* utf8, in
         return bytes;
     }
 
-    //set all used bytes except first byte to begin with bits 1-0
+    //set all used bytes except first byte to begin with bits 10 = 2
     for (int i = 1; i < bytes; i++)
-        utf8[i] = 0b10 << 6;
+        utf8[i] = 2 << 6;
 
     //least significant bits are in last byte, so start from there
     for (int i = bytes - 1; i > 0; i--)
@@ -225,7 +225,7 @@ static int escape_sequence_to_utf8(const char* string, unsigned char* bytes, siz
         uint32_t codepoint = str_to_unicode_codepoint(string + 2);
 
         //invalid codepoint
-        if (codepoint == -1)
+        if (codepoint == 0)
             return 0;
 
         //convert to utf8 bytes
