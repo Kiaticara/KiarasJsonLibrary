@@ -131,6 +131,20 @@ static int utf8_amount_of_bytes(unsigned char byte)
 //TODO: print json object
 //TODO: print json value
 
+// Prints a single character into print buffer.
+// Returns true on success, and false on fail.
+static bool print_char(struct print_buffer* buffer, char character)
+{
+    if (buffer == NULL)
+        return false;
+
+    if (!buffer_set_at(buffer, 0, character))
+        return false;
+
+    buffer->offset++;
+    return true;
+}
+
 // Prints unformatted string into print buffer.
 // Returns true on success, and false on fail.
 static bool print_string(struct print_buffer* buffer, const char* string, size_t length)
