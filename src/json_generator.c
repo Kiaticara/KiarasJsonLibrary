@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <assert.h>
-#include <string.h>
 
 #include "ki_json/json.h"
 
@@ -16,6 +15,24 @@ struct print_buffer
     size_t buffer_size;
     size_t offset;
 };
+
+#pragma region Strings
+
+// Returns length of string with max length of maxlen.
+// This should be safer.
+static size_t ki_strnlen(const char* string, size_t maxlen)
+{
+    if (string == NULL)
+        return 0;
+
+    size_t length = 0;
+
+    //increment until null-terminator or maxlen is reached
+    while (string[length] != '\0' && length != maxlen)
+        length++;
+
+    return length;
+}
 
 #pragma region Buffer
 
@@ -108,7 +125,6 @@ static int utf8_amount_of_bytes(unsigned char byte)
 
 #pragma region Printing
 
-//TODO: print json-formatted string
 //TODO: print json array
 //TODO: print json object
 //TODO: print json value
@@ -145,9 +161,9 @@ static bool print_string(struct print_buffer* buffer, const char* string, size_t
     return true;
 }
 
-// Prints a ASCII character inside a string (escaped if needed) into print buffer.
+// Prints a ASCII character inside a string value (escaped if needed) into print buffer.
 // Returns true on success, and false on fail.
-static bool print_string_ascii_char(struct print_buffer* buffer, char character)
+static bool print_formatted_string_ascii_char(struct print_buffer* buffer, char character)
 {
     if (buffer == NULL)
         return false;
@@ -171,6 +187,39 @@ static bool print_string_ascii_char(struct print_buffer* buffer, char character)
         default:
             return print_char(buffer, character);
     }
+}
+
+// Prints json-formatted string into print buffer.
+// Returns true on success, and false on fail.
+static bool print_formatted_string(struct print_buffer* buffer, struct ki_string* string)
+{
+    if (buffer == NULL || string == NULL)
+        return false;
+
+    //start double quote
+    if (!print_char(buffer, '\"'))
+        return false;
+
+    size_t length = ki_strnlen(string->bytes, string->buffer_size - 1);
+    size_t pos = 0;
+    
+    while (pos < length)
+    {
+        char character = string->bytes[pos];
+
+        //TODO: utf8 escaping
+
+        if (!print_formatted_string_ascii_char(buffer, character))
+            return false;
+
+        pos++;
+    }
+
+    //end double quote
+    if (!print_char(buffer, '\"'))
+        return false;
+
+    return true;
 }
 
 // Prints number into print buffer.
@@ -223,6 +272,8 @@ static bool print_value(struct print_buffer* buffer, struct ki_json_val* val)
 
     switch(val->type)
     {
+        case KI_JSON_VAL_STRING:
+            return print_formatted_string(buffer, &val->string);
         case KI_JSON_VAL_NUMBER:
             return print_number(buffer, val->number);
         case KI_JSON_VAL_BOOL:
@@ -231,7 +282,6 @@ static bool print_value(struct print_buffer* buffer, struct ki_json_val* val)
             return print_null(buffer);
         //TODO: case KI_JSON_VAL_ARRAY:
         //TODO: case KI_JSON_VAL_OBJECT:
-        //TODO: case KI_JSON_VAL_STRING:
         default:
             return false;
     }
