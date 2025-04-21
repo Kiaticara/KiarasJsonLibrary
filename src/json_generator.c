@@ -75,25 +75,7 @@ static char* buffer_buffer_at(struct print_buffer* buffer, size_t pos)
 
 #pragma endregion
 
-#pragma region Encodings
-
-// Returns true if ASCII character should be escaped, otherwise returns false.
-static bool ascii_char_should_escape(char character)
-{
-    switch(character)
-    {
-        case '\"': //double quotation marks
-        case '\\': //reverse solidus
-        case '\b': //backspace
-        case '\f': //form feed
-        case '\n': //line feed, line break
-        case '\r': //carriage return
-        case '\t': //horizontal tab
-            return true;
-        default:
-            return false;
-    }
-}
+#pragma region utf-8
 
 // Returns the amount of bytes a utf8 character will have from the starting byte.
 // Returns 0 if invalid, or -1 if a byte is given that is not the starting byte.
@@ -161,6 +143,34 @@ static bool print_string(struct print_buffer* buffer, const char* string, size_t
     buffer->offset += length;
 
     return true;
+}
+
+// Prints a ASCII character inside a string (escaped if needed) into print buffer.
+// Returns true on success, and false on fail.
+static bool print_string_ascii_char(struct print_buffer* buffer, char character)
+{
+    if (buffer == NULL)
+        return false;
+
+    switch(character)
+    {
+        case '\"': //double quotation marks
+            return print_string(buffer, "\\n", 2);
+        case '\\': //reverse solidus
+            return print_string(buffer, "\\\\", 2);
+        case '\b': //backspace
+            return print_string(buffer, "\\b", 2);
+        case '\f': //form feed
+            return print_string(buffer, "\\f", 2);
+        case '\n': //line feed, line break
+            return print_string(buffer, "\\n", 2);
+        case '\r': //carriage return
+            return print_string(buffer, "\\r", 2);
+        case '\t': //horizontal tab
+            return print_string(buffer, "\\t", 2);
+        default:
+            return print_char(buffer, character);
+    }
 }
 
 // Prints number into print buffer.
