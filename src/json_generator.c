@@ -75,12 +75,34 @@ static char* buffer_buffer_at(struct print_buffer* buffer, size_t pos)
 
 #pragma endregion
 
-#pragma region Conversions
+#pragma region utf-8
 
-//TODO: utf8_to_unicode_codepoint
-//TODO: unicode_codepoint_to_str
+// Returns the amount of bytes a utf8 character will have from the starting byte.
+// Returns 0 if invalid, or -1 if a byte is given that is not the starting byte.
+static int utf8_amount_of_bytes(unsigned char byte)
+{
+    //leading 1-bits before first 0-bit determines amount of bytes
+    //0... (no 1-bits) -> 1 byte (ASCII char)
+    //10 (1 1-bit) -> not first byte
+    //110... (2 1-bits) -> 2 bytes
+    //1110... (3 1-bits) -> 3 bytes
+    //11110 (4 1-bits) -> 4 bytes
 
-//TODO: escape sequences
+    if (byte >> 7 == 0)
+        return 1;
+    else if (byte >> 6 == 0b10) //not first byte
+        return -1;
+    else if (byte >> 5 == 0b110)
+        return 2;
+    else if (byte >> 4 == 0b1110)
+        return 3;
+    else if (byte >> 3 == 0b11110)
+        return 4;
+    else
+        return 0;
+}
+
+//TODO: static uint32_t utf8_to_codepoint();
 
 #pragma endregion
 
