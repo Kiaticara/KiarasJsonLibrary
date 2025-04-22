@@ -120,7 +120,47 @@ static int utf8_amount_of_bytes(unsigned char byte)
         return 0;
 }
 
-//TODO: static uint32_t utf8_to_codepoint();
+// Converts next utf8 character bytes to codepoint.
+// Returns 0 on fail.
+// TODO: test utf8_to_codepoint, it's currently untested
+// TODO: should probably take a buffer size for safety
+static uint32_t utf8_to_codepoint(unsigned char* bytes)
+{
+    if (bytes == NULL)
+        return 0;
+
+    int width = utf8_amount_of_bytes(bytes[0]);
+
+    if (width <= 0)
+        return 0;
+
+    //ascii char
+    if (width == 1)
+        return (uint32_t)bytes[0];
+
+    uint32_t codepoint = 0;
+
+    //for the first byte, we only care about the bits after the first 0-bit, 
+    //since the ones in front of it determines the width of utf8 character
+
+    //add (8 - width (1-bits) - 1 (0-bit)) least significant bits to codepoint
+    codepoint += bytes[0] & ((2 << (7 - width)) - 1);
+    //shift over for next bits
+    codepoint <<= 7 - width;
+
+    //for remaining bytes except the last one, get the 6 least significant bits (skip the first 1 bit & 0 bit)
+    //and shift the bits over unless we're at the last
+    for (int i = 1; i < width - 1; i++)
+    {
+        codepoint += bytes[i] & ((2 << 6) - 1);
+        codepoint <<= 6;
+    }
+
+    //for the last byte just add the 6 least significant bits
+    codepoint += bytes[width - 1] & ((2 << 6) - 1);;
+
+    return codepoint;
+}
 
 #pragma endregion
 
