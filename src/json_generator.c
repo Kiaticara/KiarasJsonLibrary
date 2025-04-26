@@ -282,7 +282,7 @@ static bool print_number(struct print_buffer* buffer, double number)
     const size_t NUM_MAX_LENGTH = 128;
     
     char number_string[NUM_MAX_LENGTH];
-    size_t length = snprintf(number_string, NUM_MAX_LENGTH - 1, "%e", number);
+    size_t length = snprintf(number_string, NUM_MAX_LENGTH - 1, "%g", number);
 
     if (length == 0 || length >= NUM_MAX_LENGTH)
         return false;
