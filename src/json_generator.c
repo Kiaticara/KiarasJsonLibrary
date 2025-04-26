@@ -177,6 +177,10 @@ static bool print_char(struct print_buffer* buffer, char character)
     if (buffer == NULL)
         return false;
 
+    //if need to expand buffer, but failed to do so: return false
+    if (!buffer_can_access(buffer, 0) && !buffer_expand(buffer))
+        return false;
+
     if (!buffer_set_at(buffer, 0, character))
         return false;
 
@@ -191,8 +195,13 @@ static bool print_string(struct print_buffer* buffer, const char* string, size_t
     if (buffer == NULL || string == NULL)
         return false;
 
-    if (!buffer_can_access(buffer, length - 1))
-        return false;
+    //keep expanding buffer until we can print the given string
+    while (!buffer_can_access(buffer, length - 1))
+    {
+        //failed to expand buffer
+        if (!buffer_expand(buffer))
+            return false;
+    }
 
     for (size_t i = 0; i < length; i++)
         buffer_set_at(buffer, i, string[i]);
