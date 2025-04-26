@@ -376,40 +376,43 @@ static bool parse_number(struct json_reader* reader, double* number)
     return endptr != buffer;
 }
 
-// Parse next given literal in the json string.
+// Checks whether the next characters are the given literal.
 // Returns true on success, returns false on fail.
-static bool parse_literal(struct json_reader* reader, const char* literal, size_t literal_length)
+static bool has_next_literal(struct json_reader* reader, const char* literal)
 {
-    if (!reader_can_access(reader, literal_length - 1))
+    size_t length = strlen(literal);
+
+    if (!reader_can_access(reader, length - 1))
         return false;
 
     //read characters, returning false if the characters aren't the same as in given literal
-    for (size_t i = 0; i < literal_length; i++)
+    for (size_t i = 0; i < length; i++)
     {
         if (reader_char_at(reader, i) != literal[i])
             return false; //literal not found!
     }
 
     //found literal :)
-    reader->offset += literal_length;
     return true;
 }
 
-// Parse next bool in the json string.
+// Parse next bool literal in the json string.
 // Returns true on success and outs boolean, returns false on fail.
 static bool parse_boolean(struct json_reader* reader, bool* boolean)
 {
     assert(reader && boolean);
 
-    if (parse_literal(reader, "true", 4))
+    if (has_next_literal(reader, "true"))
     {
         *boolean = true; //out boolean
+        reader->offset += 4;
         return true;
     }
     
-    if (parse_literal(reader, "false", 5))
+    if (has_next_literal(reader, "false"))
     {
         *boolean = false; //out boolean
+        reader->offset += 5;
         return true;
     }
 
@@ -417,13 +420,21 @@ static bool parse_boolean(struct json_reader* reader, bool* boolean)
     return false;
 }
 
-// Parses next null character sequence (as in 4 actual characters) in the json string.
+// Parses next null literal in the json string.
 // Returns true if found, false if not.
 static bool parse_null(struct json_reader* reader)
 {
     assert(reader);
 
-    return parse_literal(reader, "null", 4);
+    if (has_next_literal(reader, "null"))
+    {
+        reader->offset += 4;
+        return true;
+    }
+    else 
+    {
+        return false;
+    }
 }
 
 //forward declare parsing of values
