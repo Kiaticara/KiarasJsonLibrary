@@ -114,7 +114,7 @@ static uint32_t str_to_unicode_codepoint(const char* string)
 
 // Convert an unicode code point to utf8 bytes.
 // Returns number of bytes written, 0 on fail.
-static int unicode_codepoint_to_utf8(uint32_t codepoint, unsigned char* utf8, int buffer_size)
+static int unicode_codepoint_to_utf8(uint32_t codepoint, unsigned char* utf8, size_t buffer_size)
 {
     assert(utf8);
 
@@ -125,7 +125,7 @@ static int unicode_codepoint_to_utf8(uint32_t codepoint, unsigned char* utf8, in
     
     int bytes = 0;
 
-    if (codepoint >= 0x0000 && codepoint <= 0x007F)
+    if (codepoint <= 0x007F)
         bytes = 1;
     else if (codepoint >= 0x0080 && codepoint <= 0x07FF)
         bytes = 2;
@@ -135,7 +135,7 @@ static int unicode_codepoint_to_utf8(uint32_t codepoint, unsigned char* utf8, in
         bytes = 4;
 
     //invalid codepoint or buffer size too small for utf8 bytes
-    if (bytes == 0 || bytes > buffer_size)
+    if (bytes == 0 || (size_t)bytes > buffer_size)
         return 0;
 
     if (bytes == 1)
@@ -265,11 +265,8 @@ static bool parse_string(struct json_reader* reader, char** string, size_t* buff
     if (!reader_can_access(reader, 0) || reader_char_at(reader, 0) != '\"')
         return false;
 
-    size_t string_start = 1;
+    //get max length & end of string
     size_t string_end = 1;
-
-    //get max length of string
-
     size_t max_string_length = 0;
 
     while (reader_can_access(reader, string_end) && reader_char_at(reader, string_end) != '\"' && reader_char_at(reader, string_end) != '\n')
@@ -295,7 +292,7 @@ static bool parse_string(struct json_reader* reader, char** string, size_t* buff
     //read in string
     //parse escape sequences (will always be smaller or equal to amount of chars in original string)
 
-    size_t reader_pos = string_start;
+    size_t reader_pos = 1; //skip first "
     size_t new_string_pos = 0;
 
     while (reader_pos < string_end)
