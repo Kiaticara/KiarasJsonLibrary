@@ -404,37 +404,20 @@ static bool parse_boolean(struct json_reader* reader, bool* boolean)
 {
     assert(reader && boolean);
 
-    if (!reader_can_access(reader, 0))
-        return false;
-
-    const char* check = "";
-    int length = 0;
-    bool new_boolean = false;
-    
-    //pick according to first character which string to check for
-    switch (reader_char_at(reader, 0))
+    if (parse_literal(reader, "true", 4))
     {
-        case 't':
-            check = "true";
-            length = 4;
-            new_boolean = true;
-            break;
-        case 'f':
-            check = "false";
-            length = 5;
-            new_boolean = false;
-            break;
-        default:
-            return false; //invalid, not a boolean!
+        *boolean = true; //out boolean
+        return true;
+    }
+    
+    if (parse_literal(reader, "false", 5))
+    {
+        *boolean = false; //out boolean
+        return true;
     }
 
-    if (!parse_literal(reader, check, length))
-        return false;
-
-    //success! out boolean
-    *boolean = new_boolean;
-
-    return true;
+    //false and true not found, not a boolean
+    return false;
 }
 
 // Parses next null character sequence (as in 4 actual characters) in the json string.
