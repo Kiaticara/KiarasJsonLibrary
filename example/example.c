@@ -53,13 +53,18 @@ int main(void)
     char* string = NULL;
     size_t buffer_size = 0;
 
-    //read 5 strings, 4th and 5th string will be fail as they have no start quote
+    //read 5 strings, 5th string will be fail as it has no start quote
     for (int i = 0; i < 5; i++)
     {
         if (parse_string(&test_reader, &string, &buffer_size))
+        {
             printf("read string %i: %s (buffer_size = %zu) (length = %zu) (offset = %zu)\n", i + 1, string, buffer_size, strlen(string), test_reader.offset);
+            free(string);
+        }
         else
+        {
             printf("read string %i failed (offset = %zu)\n", i + 1, test_reader.offset);
+        }
     }
 
     //read 3 bools, only first 2 should be successful
@@ -99,13 +104,18 @@ int main(void)
     string = NULL;
     buffer_size = 0;
 
-    //read 3 strings, 3rd will fail
+    //read 3 strings, after 2nd will fail
     for (int i = 0; i < 5; i++)
     {
         if (parse_string(&reader2, &string, &buffer_size))
+        {
             printf("read string %i: %s (buffer_size = %zu) (length = %zu) (offset = %zu)\n", i + 1, string, buffer_size, strlen(string), reader2.offset);
+            free(string);
+        }
         else
+        {
             printf("read string %i failed (offset = %zu)\n", i + 1, reader2.offset);
+        }
     }
 
     return 0;
