@@ -272,7 +272,7 @@ static bool parse_string(struct json_reader* reader, char** string, size_t* buff
 
     size_t max_string_length = 0;
 
-    while (reader_can_access(reader, string_end) && reader_char_at(reader, string_end) != '\"')
+    while (reader_can_access(reader, string_end) && reader_char_at(reader, string_end) != '\"' && reader_char_at(reader, string_end) != '\n')
     {
         //skip next char, as it is always part of this one
         if (reader_char_at(reader, string_end) == '\\')
@@ -282,8 +282,8 @@ static bool parse_string(struct json_reader* reader, char** string, size_t* buff
         string_end++;
     }
 
-    //string never ended
-    if (!reader_can_access(reader, string_end))
+    //string must have an ending quote on the same line
+    if (!reader_can_access(reader, string_end) || reader_char_at(reader, string_end) != '\"')
         return false;
 
     //alloc string
