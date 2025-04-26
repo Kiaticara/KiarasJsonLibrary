@@ -11,6 +11,7 @@ set(
     "src/json/json_object.c"
     "src/json/json_array.c"
     "src/json_parser.c"
+    "src/json_generator.c"
 )
 
 set(LIB_INCLUDE include)

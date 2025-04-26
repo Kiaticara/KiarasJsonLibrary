@@ -4,8 +4,9 @@ A library for parsing & generating json strings.
 
 Notes:
 
-- Supports utf8 only
-- \0 (NULL character) is not supported
+- Supports utf8 only.
+- \0 (null-terminator) is not supported.
+- Unquoted object keys/names are able to parsed.
 
 ## Headers
 
@@ -15,7 +16,7 @@ Notes:
 | json_parser.h | functions for parsing json strings to ki_json's representation of them |
 | json_generator.h | functions for generating json strings from ki_json's representation of them |
 
-## Building (using cmake & UNIX Makefiles)
+## Building (using cmake and default generator)
 
     cmake -S . -B build
     cd build
@@ -24,5 +25,5 @@ Notes:
 ## Refs
 
 - https://www.json.org/json-en.html
-- https://www.rfc-editor.org/rfc/rfc4627
+- https://www.rfc-editor.org/rfc/rfc8259
 - https://json.org/example.html
