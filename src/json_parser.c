@@ -391,16 +391,17 @@ static bool parse_number(struct json_reader* reader, double* number)
 // Returns true on success, returns false on fail.
 static bool has_next_literal(struct json_reader* reader, const char* literal)
 {
-    size_t length = strlen(literal);
-
-    if (!reader_can_access(reader, length - 1))
+    if (reader == NULL || literal == NULL)
         return false;
 
-    //read characters, returning false if the characters aren't the same as in given literal
-    for (size_t i = 0; i < length; i++)
+    //read characters, returning false if the characters aren't the same as in given literal until the end of the literal
+    size_t i = 0;
+    while (literal[i] != '\0')
     {
         if (reader_char_at(reader, i) != literal[i])
             return false; //literal not found!
+
+        i++;
     }
 
     //found literal :)
