@@ -218,6 +218,11 @@ static int escape_sequence_to_utf8(const char* string, unsigned char* bytes, siz
         return 0;
 
     char escape_char_type = string[1];
+
+    //invalid escape sequence
+    if (escape_char_type == '\0')
+        return 0;
+
     if (escape_char_type == 'u') //unicode code point, convert to utf8 bytes
     {
         //parse unicode code point
@@ -242,7 +247,13 @@ static int escape_sequence_to_utf8(const char* string, unsigned char* bytes, siz
         if (buffer_size < 1)
             return 0;
 
-        bytes[0] = (unsigned char)char_to_single_escape_sequence_char(escape_char_type);
+        char escaped = char_to_single_escape_sequence_char(escape_char_type);
+
+        //invalid type
+        if (escaped == '\0')
+            return 0;
+
+        bytes[0] = (unsigned char)escaped;
 
         *sequence_length = 2;
 
