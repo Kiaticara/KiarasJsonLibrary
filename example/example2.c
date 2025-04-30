@@ -46,7 +46,7 @@ static void print_val(struct ki_json_val* val, int depth)
             printf("]");
             break;
         case KI_JSON_VAL_STRING:
-            printf("\"%s\"", val->value.string.bytes);
+            printf("\"%s\"", val->value.string);
             break;
         case KI_JSON_VAL_NUMBER:
             printf("%f", val->value.number);

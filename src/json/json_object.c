@@ -119,7 +119,7 @@ struct ki_json_array* ki_json_object_get_array(struct ki_json_object* object, co
 
 // Returns string with given name in json object.
 // Returns NULL on fail.
-struct ki_string* ki_json_object_get_string(struct ki_json_object* object, const char* name)
+char* ki_json_object_get_string(struct ki_json_object* object, const char* name)
 {
     assert(object && name);
 
@@ -128,7 +128,7 @@ struct ki_string* ki_json_object_get_string(struct ki_json_object* object, const
     if (val == NULL || val->type != KI_JSON_VAL_STRING)
         return NULL;
 
-    return &val->value.string;
+    return val->value.string;
 }
 
 // TODO: what to do on fail? ki_json_object_get_number

@@ -49,8 +49,7 @@ struct ki_json_val* ki_json_val_create_from_string(const char* string)
         return NULL;
 
     val->type = KI_JSON_VAL_STRING;
-    val->value.string.bytes = NULL;
-    val->value.string.buffer_size = 0;
+    val->value.string = NULL;
     ki_json_val_set_string(val, string);
 
     return val;
@@ -116,7 +115,7 @@ bool ki_json_val_set_string(struct ki_json_val* val, const char* string)
     //FIXME: this has no limit on how much it can copy
     
     size_t length = strlen(string);
-    char* copy = calloc(length + 1, sizeof(*(val->value.string.bytes)));
+    char* copy = calloc(length + 1, sizeof(*(val->value.string)));
 
     if (copy == NULL)
         return false;
@@ -125,11 +124,10 @@ bool ki_json_val_set_string(struct ki_json_val* val, const char* string)
     copy[length] = '\0'; //null-terminator
 
     //free old string
-    if (val->value.string.bytes != NULL)
-        free(val->value.string.bytes);
+    if (val->value.string != NULL)
+        free(val->value.string);
 
-    val->value.string.bytes = copy;
-    val->value.string.buffer_size = length + 1;
+    val->value.string = copy;
 
     return true;
 }
@@ -151,9 +149,8 @@ void ki_json_val_free(struct ki_json_val* val)
             ki_json_array_fini(&val->value.array);
             break;
         case KI_JSON_VAL_STRING:
-            free(val->value.string.bytes);
-            val->value.string.bytes = NULL;
-            val->value.string.buffer_size = 0;
+            free(val->value.string);
+            val->value.string = NULL;
             break;
         default: //KI_JSON_VAL_BOOL, KI_JSON_VAL_NUMBER, KI_JSON_VAL_NULL
             break;

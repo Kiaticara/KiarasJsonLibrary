@@ -265,12 +265,12 @@ static int escape_sequence_to_utf8(const char* string, unsigned char* bytes, siz
 
 #pragma region Parsing
 
-// Parse next single-quoted json-formatted string in json string.
+// Parse next double-quoted json-formatted string in json string.
 // String must be freed once done.
 // Returns true on success, and outs string and buffer size (not including null terminator); and false on fail
-static bool parse_string(struct json_reader* reader, char** string, size_t* buffer_size)
+static bool parse_string(struct json_reader* reader, char** string)
 {
-    assert(reader && string && buffer_size);
+    assert(reader && string);
 
     //not a string
     if (!reader_can_access(reader, 0) || reader_char_at(reader, 0) != '\"')
@@ -361,7 +361,6 @@ static bool parse_string(struct json_reader* reader, char** string, size_t* buff
 
     //out
     *string = new_string;
-    *buffer_size = max_string_length + 1;
 
     return true;
 }
@@ -519,10 +518,7 @@ static bool parse_name(struct json_reader* reader, char** name)
 
     //if starts with quote, parse name just like a string instead
     if (reader_can_access(reader, 0) && reader_char_at(reader, 0) == '\"')
-    {
-        size_t buffer_size = 0;
-        return parse_string(reader, name, &buffer_size);
-    }
+        return parse_string(reader, name);
 
     size_t name_length = 0;
 
@@ -654,7 +650,7 @@ static bool parse_value(struct json_reader* reader, struct ki_json_val** val)
         //string
         case '\"':
             new_val->type = KI_JSON_VAL_STRING;
-            success = parse_string(reader, &new_val->value.string.bytes, &new_val->value.string.buffer_size);
+            success = parse_string(reader, &new_val->value.string);
             break;
         //boolean
         case 't':

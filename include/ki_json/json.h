@@ -43,13 +43,6 @@ struct ki_json_array
     size_t capacity;
 };
 
-// A string value
-struct ki_string
-{
-    char* bytes;
-    size_t buffer_size;
-};
-
 // An json value.
 // NOTE: strings should be set using ki_json_val_set_string
 struct ki_json_val
@@ -60,7 +53,7 @@ struct ki_json_val
     {
         struct ki_json_object object;
         struct ki_json_array array;
-        struct ki_string string;
+        char* string;
         double number;
         bool boolean;
         bool null; 
@@ -85,7 +78,7 @@ struct ki_json_object* ki_json_object_get_object(struct ki_json_object* object, 
 struct ki_json_array* ki_json_object_get_array(struct ki_json_object* object, const char* name);
 // Returns string with given name in json object.
 // Returns NULL on fail.
-struct ki_string* ki_json_object_get_string(struct ki_json_object* object, const char* name);
+char* ki_json_object_get_string(struct ki_json_object* object, const char* name);
 // TODO: what to do on fail? ki_json_object_get_number
 // Returns number with given name in json object.
 // NOTE: Returns 0.0 on fail.
@@ -157,7 +150,7 @@ struct ki_json_object* ki_json_array_object_at(struct ki_json_array* array, size
 struct ki_json_array* ki_json_array_array_at(struct ki_json_array* array, size_t index);
 // Returns string at given index in json array.
 // Returns NULL on fail.
-struct ki_string* ki_json_array_string_at(struct ki_json_array* array, size_t index);
+char* ki_json_array_string_at(struct ki_json_array* array, size_t index);
 // TODO: what to do on fail? ki_json_array_get_number
 // Returns number at given index in json array.
 // NOTE: Returns 0.0 on fail.

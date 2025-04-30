@@ -77,14 +77,14 @@ struct ki_json_array* ki_json_array_array_at(struct ki_json_array* array, size_t
 
 // Returns string at given index in json array.
 // Returns NULL on fail.
-struct ki_string* ki_json_array_string_at(struct ki_json_array* array, size_t index)
+char* ki_json_array_string_at(struct ki_json_array* array, size_t index)
 {
     struct ki_json_val* val = ki_json_array_at(array, index);
 
     if (val == NULL || val->type != KI_JSON_VAL_STRING)
         return NULL;
 
-    return &val->value.string;
+    return val->value.string;
 }
 
 // TODO: what to do on fail? ki_json_array_get_number
