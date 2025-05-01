@@ -699,7 +699,7 @@ static bool parse_value(struct json_reader* reader, struct ki_json_val** val)
     if (success)
         *val = new_val; //out
     else
-        free(new_val);
+        ki_json_val_free(new_val);
 
     return success;
 }
