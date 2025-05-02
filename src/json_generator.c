@@ -8,72 +8,14 @@
 #include <string.h>
 #include <assert.h>
 
+#include "print_buffer.h"
 #include "ki_json/json.h"
 
-struct print_buffer
+struct json_generator
 {
-    char* bytes;
-    size_t buffer_size;
-    size_t offset;
+    struct print_buffer buffer;
+    int depth;
 };
-
-#pragma region Buffer
-
-// Doubles buffer size.
-// Returns true on success, and false on fail.
-static bool buffer_expand(struct print_buffer* buffer)
-{
-    if (buffer == NULL)
-        return false;
-
-    char* new_bytes = realloc(buffer->bytes, sizeof(char) * buffer->buffer_size * 2);
-
-    //alloc fail
-    if (new_bytes == NULL)
-        return false;
-
-    //fill new spots with null character
-    for (size_t i = buffer->buffer_size; i < buffer->buffer_size * 2; i++)
-        new_bytes[i] = '\0';
-
-    buffer->bytes = new_bytes;
-    buffer->buffer_size *= 2;
-
-    return true;
-}
-
-static bool buffer_can_access(struct print_buffer* buffer, size_t pos)
-{
-    if (buffer == NULL)
-        return false;
-
-    return buffer->offset + pos < buffer->buffer_size;
-}
-
-static bool buffer_set_at(struct print_buffer* buffer, size_t pos, char byte)
-{
-    if (buffer == NULL)
-        return false;
-
-    if (!buffer_can_access(buffer, pos))
-        return false;
-
-    buffer->bytes[buffer->offset + pos] = byte;
-    return true;
-}
-
-static char* buffer_buffer_at(struct print_buffer* buffer, size_t pos)
-{
-    if (buffer == NULL)
-        return NULL;
-
-    if (!buffer_can_access(buffer, pos))
-        return NULL;
-
-    return buffer->bytes + buffer->offset + pos;
-}
-
-#pragma endregion
 
 #pragma region utf-8
 
@@ -151,47 +93,6 @@ static uint32_t utf8_to_codepoint(unsigned char* bytes)
 //TODO: print json object
 //TODO: print json value
 
-// Prints a single character into print buffer.
-// Returns true on success, and false on fail.
-static bool print_char(struct print_buffer* buffer, char character)
-{
-    if (buffer == NULL)
-        return false;
-
-    //if need to expand buffer, but failed to do so: return false
-    if (!buffer_can_access(buffer, 0) && !buffer_expand(buffer))
-        return false;
-
-    if (!buffer_set_at(buffer, 0, character))
-        return false;
-
-    buffer->offset++;
-    return true;
-}
-
-// Prints unformatted string into print buffer.
-// Returns true on success, and false on fail.
-static bool print_string(struct print_buffer* buffer, const char* string, size_t length)
-{
-    if (buffer == NULL || string == NULL)
-        return false;
-
-    //keep expanding buffer until we can print the given string
-    while (!buffer_can_access(buffer, length - 1))
-    {
-        //failed to expand buffer
-        if (!buffer_expand(buffer))
-            return false;
-    }
-
-    for (size_t i = 0; i < length; i++)
-        buffer_set_at(buffer, i, string[i]);
-
-    buffer->offset += length;
-
-    return true;
-}
-
 // Prints a ASCII character inside a string value (escaped if needed) into print buffer.
 // Returns true on success, and false on fail.
 static bool print_formatted_string_ascii_char(struct print_buffer* buffer, char character)
@@ -202,33 +103,33 @@ static bool print_formatted_string_ascii_char(struct print_buffer* buffer, char 
     switch(character)
     {
         case '\"': //double quotation marks
-            return print_string(buffer, "\\n", 2);
+            return print_buffer_append_string(buffer, "\\n");
         case '\\': //reverse solidus
-            return print_string(buffer, "\\\\", 2);
+            return print_buffer_append_string(buffer, "\\\\");
         case '\b': //backspace
-            return print_string(buffer, "\\b", 2);
+            return print_buffer_append_string(buffer, "\\b");
         case '\f': //form feed
-            return print_string(buffer, "\\f", 2);
+            return print_buffer_append_string(buffer, "\\f");
         case '\n': //line feed, line break
-            return print_string(buffer, "\\n", 2);
+            return print_buffer_append_string(buffer, "\\n");
         case '\r': //carriage return
-            return print_string(buffer, "\\r", 2);
+            return print_buffer_append_string(buffer, "\\r");
         case '\t': //horizontal tab
-            return print_string(buffer, "\\t", 2);
+            return print_buffer_append_string(buffer, "\\t");
         default:
-            return print_char(buffer, character);
+            return print_buffer_append_char(buffer, character);
     }
 }
 
 // Prints json-formatted string into print buffer.
 // Returns true on success, and false on fail.
-static bool print_formatted_string(struct print_buffer* buffer, const char* string)
+static bool print_string(struct print_buffer* buffer, const char* string)
 {
     if (buffer == NULL || string == NULL)
         return false;
 
     //start double quote
-    if (!print_char(buffer, '\"'))
+    if (!print_buffer_append_char(buffer, '\"'))
         return false;
 
     size_t pos = 0;
@@ -244,7 +145,7 @@ static bool print_formatted_string(struct print_buffer* buffer, const char* stri
     }
 
     //end double quote
-    if (!print_char(buffer, '\"'))
+    if (!print_buffer_append_char(buffer, '\"'))
         return false;
 
     return true;
@@ -265,7 +166,7 @@ static bool print_number(struct print_buffer* buffer, double number)
     if (length == 0 || length >= NUM_MAX_LENGTH)
         return false;
 
-    return print_string(buffer, number_string, length);
+    return print_buffer_append_string(buffer, number_string);
 }
 
 // Prints boolean into print buffer.
@@ -275,10 +176,7 @@ static bool print_boolean(struct print_buffer* buffer, bool boolean)
     if (buffer == NULL)
         return false;
 
-    if (boolean)
-        return print_string(buffer, "true", 4);
-    else 
-        return print_string(buffer, "false", 5);
+    return print_buffer_append_string(buffer, boolean ? "true" : "false");
 }
 
 // Prints null (n-u-l-l, not the NULL character) into print buffer.
@@ -288,26 +186,28 @@ static bool print_null(struct print_buffer* buffer)
     if (buffer == NULL)
         return false;
 
-    return print_string(buffer, "null", 4);
+    return print_buffer_append_string(buffer, "null");
 }
+
+
 
 // Prints json value into print buffer.
 // Returns true on success, and false on fail.
-static bool print_value(struct print_buffer* buffer, struct ki_json_val* val)
+static bool print_value(struct json_generator* generator, struct ki_json_val* val)
 {
-    if (buffer == NULL || val == NULL)
+    if (generator == NULL || val == NULL)
         return false;
 
     switch(val->type)
     {
         case KI_JSON_VAL_STRING:
-            return print_formatted_string(buffer, val->value.string);
+            return print_string(&generator->buffer, val->value.string);
         case KI_JSON_VAL_NUMBER:
-            return print_number(buffer, val->value.number);
+            return print_number(&generator->buffer, val->value.number);
         case KI_JSON_VAL_BOOL:
-            return print_boolean(buffer, val->value.boolean);
+            return print_boolean(&generator->buffer, val->value.boolean);
         case KI_JSON_VAL_NULL:
-            return print_null(buffer);
+            return print_null(&generator->buffer);
         //TODO: case KI_JSON_VAL_ARRAY:
         //TODO: case KI_JSON_VAL_OBJECT:
         default:
