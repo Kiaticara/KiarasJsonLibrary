@@ -138,7 +138,8 @@ bool ki_json_val_set_string(struct ki_json_val* val, const char* string)
 
 void ki_json_val_free(struct ki_json_val* val)
 {
-    assert(val);
+    if (val == NULL)
+        return;
 
     switch (val->type)
     {
@@ -149,8 +150,11 @@ void ki_json_val_free(struct ki_json_val* val)
             ki_json_array_fini(&val->value.array);
             break;
         case KI_JSON_VAL_STRING:
-            free(val->value.string);
-            val->value.string = NULL;
+            if (val->value.string != NULL)
+            {
+                free(val->value.string);
+                val->value.string = NULL;
+            }
             break;
         default: //KI_JSON_VAL_BOOL, KI_JSON_VAL_NUMBER, KI_JSON_VAL_NULL
             break;
