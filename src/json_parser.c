@@ -13,6 +13,8 @@
 // utf8 characters have 4 bytes max
 #define CHARACTER_MAX_BUFFER_SIZE 4
 
+//TODO: utf8 replacement char
+
 struct json_reader
 {
     const char* json_string;
@@ -250,7 +252,6 @@ static char char_to_single_escape_sequence_char(char type)
 }
 
 // Converts next utf16 literal (XXXX where X is a hex digit) to utf 8 bytes. 
-// Uses utf8 replacement char if a invalid utf16 literal is given and 3 bytes are available.
 // Returns number of bytes written, 0 on fail.
 static size_t utf16_literal_to_utf8(const char* literal, const char* end, unsigned char* utf8, size_t size)
 {
