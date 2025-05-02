@@ -7,6 +7,7 @@
 #include <string.h>
 #include <assert.h>
 
+#include "print_buffer.h"
 #include "ki_json/json.h"
 
 // utf8 characters have 4 bytes max
@@ -19,6 +20,9 @@ struct json_reader
     size_t length; 
     // Current reader index offset
     size_t offset;
+
+    //Print buffer used for string values
+    struct print_buffer string_buffer;
 };
 
 // Returns true if character is a space, horizontal tab, line feed/break or carriage return, else false.
@@ -28,6 +32,29 @@ static bool char_is_whitespace(char character)
 }
 
 #pragma region Reader
+
+static bool reader_init(struct json_reader* reader, const char* json, size_t length)
+{
+    if (reader == NULL)
+        return false;
+
+    if (!print_buffer_init(&reader->string_buffer, 32))
+        return false;
+
+    reader->json_string = json;
+    reader->length = length;
+    reader->offset = 0;
+
+    return true;
+}
+
+static void reader_fini(struct json_reader* reader)
+{
+    if (reader == NULL)
+        return;
+
+    print_buffer_fini(&reader->string_buffer);
+}
 
 // Can reader access char at index pos offsetted by the reader's offset?
 static bool reader_can_access(struct json_reader* reader, size_t pos)
@@ -47,6 +74,22 @@ static char reader_char_at(struct json_reader* reader, size_t pos)
         return '\0';
 
     return reader->json_string[reader->offset + pos];
+}
+
+static bool reader_peek(struct json_reader* reader, char* character)
+{
+    if (reader == NULL || !reader_can_access(reader, 0))
+    {
+        if (character != NULL)
+            *character = '\0';
+
+        return false;
+    }
+
+    if (character != NULL)
+        *character = reader->json_string[reader->offset];
+
+    return true;
 }
 
 // Returns buffer at index pos offsetted by reader's offset, NULL on fail.
@@ -206,12 +249,39 @@ static char char_to_single_escape_sequence_char(char type)
     }
 }
 
+// Converts next utf16 literal (XXXX where X is a hex digit) to utf 8 bytes. 
+// Uses utf8 replacement char if a invalid utf16 literal is given and 3 bytes are available.
+// Returns number of bytes written, 0 on fail.
+static size_t utf16_literal_to_utf8(const char* literal, const char* end, unsigned char* utf8, size_t size)
+{
+    if (literal == NULL || utf8 == NULL)
+        return 0;
+
+    //TODO: surrogate pairs
+
+    if (end - literal < 6)
+        return 0;
+
+    uint32_t codepoint = str_to_unicode_codepoint(literal + 2);
+
+    //invalid codepoint
+    if (codepoint == 0)
+        return 0;
+    //encode codepoint as utf8 bytes into bytes buffer
+    else
+        return unicode_codepoint_to_utf8(codepoint, utf8, size);
+}
+
 // Converts escape sequence in (string) to utf8 bytes and output to (bytes) along with the length of read sequence.
 // Supports unicode code points \uXXXX (X = hex digit), converting to utf8.
 // Returns number of bytes written, 0 on fail.
-static int escape_sequence_to_utf8(const char* string, unsigned char* bytes, size_t buffer_size, size_t* sequence_length)
+static int escape_sequence_to_utf8(const char* string, const char* string_end, unsigned char* bytes, size_t buffer_size, size_t* sequence_length)
 {
-    assert(string && bytes && buffer_size > 0 && sequence_length);
+    assert(string && string_end && bytes && buffer_size > 0 && sequence_length);
+
+    //backslash and escape sequence type char required
+    if (string_end - string < 2)
+        return 0;
 
     //invalid escape sequence
     if (string[0] != '\\')
@@ -225,18 +295,8 @@ static int escape_sequence_to_utf8(const char* string, unsigned char* bytes, siz
 
     if (escape_char_type == 'u') //unicode code point, convert to utf8 bytes
     {
-        //parse unicode code point
-
-        uint32_t codepoint = str_to_unicode_codepoint(string + 2);
-
-        //invalid codepoint
-        if (codepoint == 0)
-            return 0;
-
-        //convert to utf8 bytes
-        
-        int num_bytes = unicode_codepoint_to_utf8(codepoint, bytes, buffer_size);
-
+        //TODO: surrogate pairs might also cause lengths of 12
+        size_t num_bytes = utf16_literal_to_utf8(string, string_end, bytes, buffer_size);
         *sequence_length = 6;
 
         return num_bytes;
@@ -261,13 +321,92 @@ static int escape_sequence_to_utf8(const char* string, unsigned char* bytes, siz
     }
 }
 
+// Prints string inside src until end into dest, while converting escape sequences.
+// Returns true on success, false on fail.
+static bool print_escaped_string_as_unescaped(struct print_buffer* dest, const char* src, const char* end)
+{
+    if (src == NULL || end == NULL || dest == NULL)
+        return false;
+
+    //NOTE: only escaped utf8 characters are added in a single iteration, others are done byte per byte
+    while (src < end)
+    {
+        size_t sequence_length = 0;
+
+        //start of an escape sequence
+        if (src[0] == '\\')
+        {
+            unsigned char bytes[CHARACTER_MAX_BUFFER_SIZE]; //character bytes, max. 4 bytes (utf8)
+            size_t num_bytes = escape_sequence_to_utf8(src, end, bytes, CHARACTER_MAX_BUFFER_SIZE, &sequence_length);
+
+            //invalid escape sequence or failed to parse it
+            if (num_bytes == 0)
+                return false;
+
+            if (!print_buffer_append_mem(dest, bytes, num_bytes))
+                return false;
+        }
+        else 
+        {
+            if (!print_buffer_append_char(dest, src[0]))
+                return false;
+
+            sequence_length = 1;
+        }
+
+        src += sequence_length;
+    }
+
+    return true;
+}
+
 #pragma endregion
 
 #pragma region Parsing
 
+// Checks whether reader can read in a string value.
+// Returns true on success and outs length (including quotes), returns false on fail.
+static bool has_next_string_val(struct json_reader* reader, size_t* length)
+{
+    if (reader == NULL)
+        return false;
+
+    char character = '\0';
+
+    //no start quote
+    if (!reader_peek(reader, &character) || character != '\"')
+        return false;
+
+    size_t string_start = reader->offset;
+
+    reader->offset++;
+
+    while (reader_peek(reader, &character) && character != '\"' && character != '\n' && character != '\0')
+    {
+        //skip next char, as it is always part of this one
+        if (character == '\\')
+            reader->offset++;
+
+        reader->offset++;
+    }
+
+    //string must have an ending quote on the same line
+    if (!reader_peek(reader, &character) || character != '\"')
+        return false;
+
+    //out
+    if (length != NULL)
+        *length = reader->offset - string_start + 1;
+
+    //go back
+    reader->offset = string_start;
+
+    return true;
+}
+
 // Parse next double-quoted json-formatted string in json string.
 // String must be freed once done.
-// Returns true on success, and outs string and buffer size (not including null terminator); and false on fail
+// Returns true on success, and outs to string; and false on fail
 static bool parse_string(struct json_reader* reader, char** string)
 {
     assert(reader && string);
@@ -276,88 +415,32 @@ static bool parse_string(struct json_reader* reader, char** string)
     if (!reader_can_access(reader, 0) || reader_char_at(reader, 0) != '\"')
         return false;
 
-    //get max length & end of string
-    size_t string_end = 1;
-    size_t max_string_length = 0;
+    //get end index of string, check whether we even have a string val
+    size_t string_end = 0;
 
-    while (reader_can_access(reader, string_end) && reader_char_at(reader, string_end) != '\"' && reader_char_at(reader, string_end) != '\n')
-    {
-        //skip next char, as it is always part of this one
-        if (reader_char_at(reader, string_end) == '\\')
-            string_end++;
-
-        max_string_length++;
-        string_end++;
-    }
-
-    //string must have an ending quote on the same line
-    if (!reader_can_access(reader, string_end) || reader_char_at(reader, string_end) != '\"')
+    if (!has_next_string_val(reader, &string_end))
         return false;
 
-    //alloc string
-    char* new_string = calloc(max_string_length + 1, sizeof(*new_string));
+    //convert string value
+    
+    print_buffer_reset(&reader->string_buffer);
+    if (!print_escaped_string_as_unescaped(&reader->string_buffer, reader_buffer_at(reader, 1), reader_buffer_at(reader, string_end - 1)))
+        return false;
 
+    char* new_string = calloc(print_buffer_length(&reader->string_buffer) + 1, sizeof(*new_string));
+
+    //alloc fail
     if (new_string == NULL)
         return false;
 
-    //read in string
-    //parse escape sequences (will always be smaller or equal to amount of chars in original string)
-
-    size_t reader_pos = 1; //skip first "
-    size_t new_string_pos = 0;
-
-    while (reader_pos < string_end)
-    {
-        size_t sequence_length = 1;
-
-        int num_bytes = 1;
-        char bytes[CHARACTER_MAX_BUFFER_SIZE]; //character bytes, max. 4 bytes (utf8)
-
-        bytes[0] = reader_char_at(reader, reader_pos);
-
-        //start of an escape sequence
-        if (bytes[0] == '\\')
-        {
-            const char* read_buffer = reader_buffer_at(reader, reader_pos);
-
-            //NOTE: the cast to unsigned char* is a bit weird, but it seems to be my only choice for utf8
-            num_bytes = escape_sequence_to_utf8(read_buffer, (unsigned char*)bytes, CHARACTER_MAX_BUFFER_SIZE, &sequence_length);
-
-            //invalid escape sequence or failed to parse it
-            if (num_bytes == 0)
-            {
-                free(new_string);
-                return false;
-            }
-        }
-
-        //write bytes into new string
-        for (int i = 0; i < num_bytes; i++)
-        {
-            if (new_string_pos >= max_string_length)
-            {
-                free(new_string);
-                return false;
-            }
-
-            new_string[new_string_pos] = bytes[i];
-            new_string_pos++;
-        }
-        
-        reader_pos += sequence_length;
-    }
-
-    //failed to read in string
-    if (reader_pos < string_end)
+    if (!print_buffer_copy_to_buffer(&reader->string_buffer, new_string, print_buffer_length(&reader->string_buffer) + 1))
     {
         free(new_string);
         return false;
     }
 
-    new_string[new_string_pos] = '\0'; //null-terminator
-
-    //move to end of string (skipping quotes)
-    reader->offset += string_end + 1;
+    //move to end of string val
+    reader->offset += string_end;
 
     //out
     *string = new_string;
@@ -716,14 +799,21 @@ struct ki_json_val* ki_json_parse_string(const char* string)
 {
     size_t length = strlen(string);
 
-    struct json_reader reader = {string, length, 0};
+    struct json_reader reader = {0};
+    
+    if (!reader_init(&reader, string, length))
+        return NULL;
 
     struct ki_json_val* val = NULL;
     bool success = parse_value(&reader, &val);
+    
+    reader_fini(&reader);
 
-    if (!success && val != NULL)
+    if (!success)
     {
-        ki_json_val_free(val);
+        if (val != NULL)
+            ki_json_val_free(val);
+
         return NULL;
     }
     else 
@@ -737,14 +827,21 @@ struct ki_json_val* ki_json_parse_string(const char* string)
 // Returns NULL on fail.
 struct ki_json_val* ki_json_nparse_string(const char* string, size_t n)
 {
-    struct json_reader reader = {string, n, 0};
+    struct json_reader reader = {0};
+
+    if (!reader_init(&reader, string, n))
+        return NULL;
 
     struct ki_json_val* val = NULL;
     bool success = parse_value(&reader, &val);
+    
+    reader_fini(&reader);
 
-    if (!success && val != NULL)
+    if (!success)
     {
-        ki_json_val_free(val);
+        if (val != NULL)
+            ki_json_val_free(val);
+
         return NULL;
     }
     else 
