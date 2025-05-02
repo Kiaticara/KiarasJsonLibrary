@@ -455,7 +455,7 @@ static bool parse_null(struct json_reader* reader)
 // Returns true on success and outs val (ki_json_val), returns false on fail.
 static bool parse_value(struct json_reader* reader, struct ki_json_val** val);
 
-// Parse next json array in the json string, using given uninit array.
+// Parse next json array in the json string, using given INIT array.
 // Returns true on success, returns false on fail.
 static bool parse_array(struct json_reader* reader, struct ki_json_array* array)
 {
@@ -464,9 +464,6 @@ static bool parse_array(struct json_reader* reader, struct ki_json_array* array)
     //invalid json array
     if (!reader_can_access(reader, 0) || reader_char_at(reader, 0) != '[')
         return false;
-
-    //alloc default capacity
-    ki_json_array_init(array, 5);
 
     //parse values
 
@@ -550,7 +547,7 @@ static bool parse_name(struct json_reader* reader, char** name)
     return true;
 }
 
-// Parse next json object in the json string, using given uninit object.
+// Parse next json object in the json string, using given INIT object.
 // Returns true on success, returns false on fail.
 static bool parse_object(struct json_reader* reader, struct ki_json_object* object)
 {
@@ -559,9 +556,6 @@ static bool parse_object(struct json_reader* reader, struct ki_json_object* obje
     //invalid json object
     if (!reader_can_access(reader, 0) || reader_char_at(reader, 0) != '{')
         return false;
-
-    //alloc default capacity
-    ki_json_object_init(object, 5);
 
     //parse values
     reader->offset++; //skip first {
@@ -650,6 +644,7 @@ static bool parse_value(struct json_reader* reader, struct ki_json_val** val)
         //string
         case '\"':
             new_val->type = KI_JSON_VAL_STRING;
+            new_val->value.string = NULL;
             success = parse_string(reader, &new_val->value.string);
             break;
         //boolean
@@ -661,11 +656,19 @@ static bool parse_value(struct json_reader* reader, struct ki_json_val** val)
         //json object (ki_json_object)
         case '{':
             new_val->type = KI_JSON_VAL_OBJECT;
+
+            //alloc default capacity
+            ki_json_object_init(&new_val->value.object, 5);
+
             success = parse_object(reader, &new_val->value.object);
             break;
         //json array (ki_json_array)
         case '[':
             new_val->type = KI_JSON_VAL_ARRAY;
+
+            //alloc default capacity
+            ki_json_array_init(&new_val->value.array, 5);
+
             success = parse_array(reader, &new_val->value.array);
             break;
         //null
