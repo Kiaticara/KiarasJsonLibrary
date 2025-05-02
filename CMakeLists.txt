@@ -12,11 +12,14 @@ set(
     "src/json/json_array.c"
     "src/json_parser.c"
     "src/json_generator.c"
+    
+    "src/print_buffer.c"
+    "src/print_buffer.h"
 )
 
 set(LIB_INCLUDE include)
 
-add_library(KiarasJsonLibrary STATIC ${LIB_SOURCES} ${LIB_INCLUDE})
+add_library(KiarasJsonLibrary ${LIB_SOURCES} ${LIB_INCLUDE})
 
 target_compile_options(KiarasJsonLibrary PUBLIC -Wall -Wextra -Wpedantic)
 
