@@ -693,12 +693,14 @@ static bool parse_value(struct json_reader* reader, struct ki_json_val** val)
             success = parse_number(reader, &new_val->value.number);
             break;
         default:
+            free(new_val);
+            new_val = NULL;
             break;
     }
 
     if (success)
         *val = new_val; //out
-    else
+    else if (new_val != NULL)
         ki_json_val_free(new_val);
 
     return success;
