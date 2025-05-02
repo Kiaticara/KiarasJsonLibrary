@@ -544,8 +544,10 @@ static bool parse_array(struct json_reader* reader, struct ki_json_array* array)
 {
     assert(reader && array);
 
+    char character = '\0';
+
     //invalid json array
-    if (!reader_can_access(reader, 0) || reader_char_at(reader, 0) != '[')
+    if (!reader_peek(reader, &character) || character != '[')
         return false;
 
     //parse values
@@ -554,7 +556,7 @@ static bool parse_array(struct json_reader* reader, struct ki_json_array* array)
 
     reader_skip_whitespace(reader);
 
-    while (reader_can_access(reader, 0) && reader_char_at(reader, 0) != ']')
+    while (reader_peek(reader, &character) && character != ']')
     {
         #if KI_JSON_PARSER_VERBOSE
         printf("Parsing array value index: %zu\n", array->count);
@@ -571,7 +573,7 @@ static bool parse_array(struct json_reader* reader, struct ki_json_array* array)
         reader_skip_whitespace(reader);
 
         //comma separates next value
-        if (!reader_can_access(reader, 0) || reader_char_at(reader, 0) != ',')
+        if (!reader_peek(reader, &character) || character != ',')
             break;
 
         reader->offset++; //skip comma
@@ -580,7 +582,7 @@ static bool parse_array(struct json_reader* reader, struct ki_json_array* array)
     }
 
     //array never ended
-    if (!reader_can_access(reader, 0) || reader_char_at(reader, 0) != ']')
+    if (!reader_peek(reader, &character) || character != ']')
         return false;
 
     reader->offset++; //skip last ]
@@ -709,7 +711,9 @@ static bool parse_value(struct json_reader* reader, struct ki_json_val** val)
 {
     assert(reader && val);
 
-    if (!reader_can_access(reader, 0))
+    char character = '\0';
+
+    if (!reader_peek(reader, &character))
         return false;
 
     //pick according to first character which type to try and parse, and parse it (duh)
@@ -722,7 +726,7 @@ static bool parse_value(struct json_reader* reader, struct ki_json_val** val)
 
     bool success = false;
 
-    switch (reader_char_at(reader, 0))
+    switch (character)
     {
         //string
         case '\"':
