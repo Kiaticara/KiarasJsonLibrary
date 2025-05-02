@@ -13,6 +13,61 @@
 //Just for testing static parser functions
 #include "../src/json_parser.c"
 
+static void print_val(struct ki_json_val* val, int depth)
+{
+    assert(val);
+
+    switch(val->type)
+    {
+        case KI_JSON_VAL_OBJECT:
+            printf("{\n");
+            for (size_t i = 0; i < val->value.object.count; i++)
+            {  
+                for (int j = 0; j <= depth; j++)
+                    printf("\t");
+
+                printf("%s: ", val->value.object.names[i]);
+                print_val(val->value.object.values[i], depth + 1);
+                printf("\n");
+            }
+
+            for (int i = 0; i < depth; i++)
+                    printf("\t");
+
+            printf("}");
+            break;
+        case KI_JSON_VAL_ARRAY:
+            printf("[\n");
+            for (size_t i = 0; i < val->value.array.count; i++)
+            {  
+                for (int j = 0; j <= depth; j++)
+                    printf("\t");
+
+                printf("%zu: ", i);
+                print_val(val->value.array.values[i], depth + 1);
+                printf("\n");
+            }
+
+            for (int i = 0; i < depth; i++)
+                    printf("\t");
+
+            printf("]");
+            break;
+        case KI_JSON_VAL_STRING:
+            printf("\"%s\"", val->value.string);
+            break;
+        case KI_JSON_VAL_NUMBER:
+            printf("%f", val->value.number);
+            break;
+        case KI_JSON_VAL_BOOL:
+            printf("%i", val->value.boolean);
+            break;
+        case KI_JSON_VAL_NULL:
+            printf("null");
+            break;
+    }
+}
+
 int main(void)
 {
     //TODO: example should do null checks for json objects & nodes
@@ -48,7 +103,8 @@ int main(void)
     printf("destroying json object val\n");
     ki_json_val_free(val_object);
 
-    struct json_reader test_reader = {"\"test lol lol\"\"can't see me yet!\"\"tab\\tta\\nb\\t\"\"aa\\u00AEabc\"truefalse true2.234-99.92.2", 87, 0};
+    struct json_reader test_reader = {0};
+    reader_init(&test_reader, "\"test lol lol\"\"can't see me yet!\"\"tab\\tta\\nb\\t\"\"aa\\u00AEabc\"truefalse true2.234-99.92.2", 87);
 
     char* string = NULL;
 
@@ -94,11 +150,14 @@ int main(void)
             printf("read number %i failed\n", i + 1);
     }
 
+    reader_fini(&test_reader);
+
     //unicode code point testing
     //first: 2 byte trademark character & 2 byte yen sign
     //second: 2 byte Latin Capital Letter Esh and 3 byte Latin Small Letter Y with loop and another 2 byte Latin Capital Letter Esh
 
-    struct json_reader reader2 = {"\"aa\\u00AEabc\\u00A5\"\"\\u01A9\\u1EFF\\u01A9\"", 39, 0};
+    struct json_reader reader2 = {0};
+    reader_init(&reader2, "\"aa\\u00AEabc\\u00A5\"\"\\u01A9\\u1EFF\\u01A9\"", 39);
     
     string = NULL;
 
@@ -114,6 +173,24 @@ int main(void)
         {
             printf("read string %i failed (offset = %zu)\n", i + 1, reader2.offset);
         }
+    }
+
+    reader_fini(&reader2);
+
+    struct ki_json_val* val_array = ki_json_parse_string("[ \t[  \"test\", 5.0, true ]\t, [  \"test\", 5.0, true ], {     \t }  , [ ] ]");
+
+    if (val_array != NULL)
+    {
+        printf("parsed array! (count = %zu) (capacity = %zu)\n", val_array->value.array.count, val_array->value.array.capacity);
+
+        print_val(val_array, 0);
+        printf("\n");
+        
+        ki_json_val_free(val_array);
+    }
+    else 
+    {
+        printf("failed to parse array...\n");
     }
 
     return 0;
