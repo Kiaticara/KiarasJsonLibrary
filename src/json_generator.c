@@ -89,9 +89,7 @@ static uint32_t utf8_to_codepoint(unsigned char* bytes)
 
 #pragma region Printing
 
-//TODO: print json array
 //TODO: print json object
-//TODO: print json value
 
 // Prints a ASCII character inside a string value (escaped if needed) into print buffer.
 // Returns true on success, and false on fail.
@@ -189,7 +187,63 @@ static bool print_null(struct print_buffer* buffer)
     return print_buffer_append_string(buffer, "null");
 }
 
+// forward declare printing of values
 
+// Prints json value into generator's print buffer.
+// Returns true on success, and false on fail.
+static bool print_value(struct json_generator* generator, struct ki_json_val* val);
+
+static bool print_depth(struct print_buffer* buffer, int depth)
+{
+    if (buffer == NULL)
+        return false;
+
+    for (int i = 0; i < depth; i++)
+    {
+        if (!print_buffer_append_char(buffer, '\t'))
+            return false;
+    }
+    
+    return true;
+}
+
+// Prints json array into generator's print buffer.
+// Returns true on success, and false on fail.
+static bool print_array(struct json_generator* generator, struct ki_json_array* array)
+{
+    if (generator == NULL || array == NULL)
+        return false;
+
+    if (!print_buffer_append_string(&generator->buffer, "[\n"))
+        return false;
+
+    generator->depth++;
+
+    for (size_t i = 0; i < array->count; i++)
+    {
+        if (!print_depth(&generator->buffer, generator->depth))
+            return false;
+
+        if (!print_value(generator, array->values[i]))
+            return false; 
+
+        if (i != array->count - 1 && !print_buffer_append_char(&generator->buffer, ','))
+            return false;
+        
+        if (!print_buffer_append_char(&generator->buffer, '\n'))
+            return false;
+    }
+
+    generator->depth--;
+    
+    if (!print_depth(&generator->buffer, generator->depth))
+        return false;
+
+    if (!print_buffer_append_char(&generator->buffer, ']'))
+        return false;
+
+    return true;
+}
 
 // Prints json value into print buffer.
 // Returns true on success, and false on fail.
@@ -208,7 +262,8 @@ static bool print_value(struct json_generator* generator, struct ki_json_val* va
             return print_boolean(&generator->buffer, val->value.boolean);
         case KI_JSON_VAL_NULL:
             return print_null(&generator->buffer);
-        //TODO: case KI_JSON_VAL_ARRAY:
+        case KI_JSON_VAL_ARRAY:
+            return print_array(generator, &val->value.array);
         //TODO: case KI_JSON_VAL_OBJECT:
         default:
             return false;
