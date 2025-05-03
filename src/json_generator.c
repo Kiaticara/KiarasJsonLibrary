@@ -89,8 +89,6 @@ static uint32_t utf8_to_codepoint(unsigned char* bytes)
 
 #pragma region Printing
 
-//TODO: print json object
-
 // Prints a ASCII character inside a string value (escaped if needed) into print buffer.
 // Returns true on success, and false on fail.
 static bool print_formatted_string_ascii_char(struct print_buffer* buffer, char character)
@@ -118,6 +116,11 @@ static bool print_formatted_string_ascii_char(struct print_buffer* buffer, char 
             return print_buffer_append_char(buffer, character);
     }
 }
+
+// Prints codepoint into print buffer.
+// Supports 4-hex digits only. (Basically 16-bits only, lol)
+// Returns true on success, and false on fail.
+static bool print_codepoint(uint32_t codepoint);
 
 // Prints json-formatted string into print buffer.
 // Returns true on success, and false on fail.
