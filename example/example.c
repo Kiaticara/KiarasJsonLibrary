@@ -8,63 +8,26 @@
 
 #include "ki_json/json.h"
 #include "ki_json/json_parser.h"
+#include "ki_json/json_generator.h"
 
 //TODO: remove this when finished
 //Just for testing static parser functions
 #include "../src/json_parser.c"
 
-static void print_val(struct ki_json_val* val, int depth)
+static void print_val(struct ki_json_val* val)
 {
     assert(val);
 
-    switch(val->type)
+    char* string = ki_json_gen_string(val);
+
+    if (string != NULL)
     {
-        case KI_JSON_VAL_OBJECT:
-            printf("{\n");
-            for (size_t i = 0; i < val->value.object.count; i++)
-            {  
-                for (int j = 0; j <= depth; j++)
-                    printf("\t");
-
-                printf("%s: ", val->value.object.names[i]);
-                print_val(val->value.object.values[i], depth + 1);
-                printf("\n");
-            }
-
-            for (int i = 0; i < depth; i++)
-                    printf("\t");
-
-            printf("}");
-            break;
-        case KI_JSON_VAL_ARRAY:
-            printf("[\n");
-            for (size_t i = 0; i < val->value.array.count; i++)
-            {  
-                for (int j = 0; j <= depth; j++)
-                    printf("\t");
-
-                printf("%zu: ", i);
-                print_val(val->value.array.values[i], depth + 1);
-                printf("\n");
-            }
-
-            for (int i = 0; i < depth; i++)
-                    printf("\t");
-
-            printf("]");
-            break;
-        case KI_JSON_VAL_STRING:
-            printf("\"%s\"", val->value.string);
-            break;
-        case KI_JSON_VAL_NUMBER:
-            printf("%f", val->value.number);
-            break;
-        case KI_JSON_VAL_BOOL:
-            printf("%i", val->value.boolean);
-            break;
-        case KI_JSON_VAL_NULL:
-            printf("null");
-            break;
+        printf("%s\n", string);
+        free(string);
+    }
+    else
+    {
+        printf("failed to gen string...\n");
     }
 }
 
@@ -183,7 +146,7 @@ int main(void)
     {
         printf("parsed array! (count = %zu) (capacity = %zu)\n", val_array->value.array.count, val_array->value.array.capacity);
 
-        print_val(val_array, 0);
+        print_val(val_array);
         printf("\n");
         
         ki_json_val_free(val_array);

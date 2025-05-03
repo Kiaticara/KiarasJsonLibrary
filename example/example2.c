@@ -6,6 +6,23 @@
 #include "ki_json/json_parser.h"
 #include "ki_json/json_generator.h"
 
+static void print_val(struct ki_json_val* val)
+{
+    assert(val);
+
+    char* string = ki_json_gen_string(val);
+
+    if (string != NULL)
+    {
+        printf("%s\n", string);
+        free(string);
+    }
+    else
+    {
+        printf("failed to gen string...\n");
+    }
+}
+
 static long file_len(FILE* file)
 {
     assert(file);
@@ -72,14 +89,7 @@ int main(int argc, char** argv)
 
             printf("printing value using json generator...\n");
 
-            char* string = ki_json_gen_string(val);
-
-            if (string != NULL)
-                printf("%s\n", string);
-            else
-                printf("failed to gen string...\n");
-
-            free(string);
+            print_val(val);
 
             printf("freeing value %s...\n", path);
             ki_json_val_free(val);

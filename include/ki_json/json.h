@@ -62,6 +62,8 @@ struct ki_json_val
 
 #pragma endregion
 
+//TODO: add val, object and array is_type functions
+
 #pragma region Json object functions
 
 bool ki_json_object_init(struct ki_json_object* object, size_t capacity);
