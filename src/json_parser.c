@@ -412,10 +412,6 @@ static bool parse_string(struct json_reader* reader, char** string)
 {
     assert(reader && string);
 
-    //not a string
-    if (!reader_can_access(reader, 0) || reader_char_at(reader, 0) != '\"')
-        return false;
-
     //get end index of string, check whether we even have a string val
     size_t string_end = 0;
 
