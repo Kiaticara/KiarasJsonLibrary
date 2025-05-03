@@ -4,61 +4,7 @@
 
 #include "ki_json/json.h"
 #include "ki_json/json_parser.h"
-
-static void print_val(struct ki_json_val* val, int depth)
-{
-    assert(val);
-
-    switch(val->type)
-    {
-        case KI_JSON_VAL_OBJECT:
-            printf("{\n");
-            for (size_t i = 0; i < val->value.object.count; i++)
-            {  
-                for (int j = 0; j <= depth; j++)
-                    printf("\t");
-
-                printf("%s: ", val->value.object.names[i]);
-                print_val(val->value.object.values[i], depth + 1);
-                printf("\n");
-            }
-
-            for (int i = 0; i < depth; i++)
-                    printf("\t");
-
-            printf("}");
-            break;
-        case KI_JSON_VAL_ARRAY:
-            printf("[\n");
-            for (size_t i = 0; i < val->value.array.count; i++)
-            {  
-                for (int j = 0; j <= depth; j++)
-                    printf("\t");
-
-                printf("%zu: ", i);
-                print_val(val->value.array.values[i], depth + 1);
-                printf("\n");
-            }
-
-            for (int i = 0; i < depth; i++)
-                    printf("\t");
-
-            printf("]");
-            break;
-        case KI_JSON_VAL_STRING:
-            printf("\"%s\"", val->value.string);
-            break;
-        case KI_JSON_VAL_NUMBER:
-            printf("%f", val->value.number);
-            break;
-        case KI_JSON_VAL_BOOL:
-            printf("%i", val->value.boolean);
-            break;
-        case KI_JSON_VAL_NULL:
-            printf("null");
-            break;
-    }
-}
+#include "ki_json/json_generator.h"
 
 static long file_len(FILE* file)
 {
@@ -124,8 +70,16 @@ int main(int argc, char** argv)
         {
             printf("parsed value!\n");
 
-            print_val(val, 0);
-            printf("\n");
+            printf("printing value using json generator...\n");
+
+            char* string = ki_json_gen_string(val);
+
+            if (string != NULL)
+                printf("%s\n", string);
+            else
+                printf("failed to gen string...\n");
+
+            free(string);
 
             printf("freeing value %s...\n", path);
             ki_json_val_free(val);

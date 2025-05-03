@@ -5,8 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <string.h>
-#include <assert.h>
 
 #include "print_buffer.h"
 #include "ki_json/json.h"
@@ -317,4 +315,42 @@ static bool print_value(struct json_generator* generator, struct ki_json_val* va
         default:
             return false;
     }
+}
+
+// Generate string from json val.
+// Returned string must be freed once done.
+// Returns NULL on fail.
+char* ki_json_gen_string(struct ki_json_val* val)
+{
+    if (val == NULL)
+        return NULL;
+
+    struct json_generator generator = {0};
+
+    if (!print_buffer_init(&generator.buffer, 256))
+        return NULL;
+
+    generator.depth = 0;
+
+    if (!print_value(&generator, val))
+        return NULL;
+
+    char* string = calloc(print_buffer_length(&generator.buffer) + 1, sizeof(*string));
+
+    if (string == NULL)
+    {
+        print_buffer_fini(&generator.buffer);
+        return NULL;
+    }
+
+    if (!print_buffer_copy_to_buffer(&generator.buffer, string, print_buffer_length(&generator.buffer) + 1))
+    {
+        print_buffer_fini(&generator.buffer);
+        free(string);
+        return NULL;
+    }
+
+    print_buffer_fini(&generator.buffer);
+
+    return string;
 }
