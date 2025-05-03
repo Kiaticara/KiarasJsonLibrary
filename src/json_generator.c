@@ -245,7 +245,52 @@ static bool print_array(struct json_generator* generator, struct ki_json_array* 
     return true;
 }
 
-// Prints json value into print buffer.
+// TODO: should probably find a way to not have this mess of if-statements
+// Prints json object into generator's print buffer.
+// Returns true on success, and false on fail.
+static bool print_object(struct json_generator* generator, struct ki_json_object* object)
+{
+    if (generator == NULL || object == NULL)
+        return false;
+
+    if (!print_buffer_append_string(&generator->buffer, "{\n"))
+        return false;
+
+    generator->depth++;
+
+    for (size_t i = 0; i < object->count; i++)
+    {
+        if (!print_depth(&generator->buffer, generator->depth))
+            return false;
+        
+        if (!print_string(&generator->buffer, object->names[i]))
+            return false;
+
+        if (!print_buffer_append_string(&generator->buffer, ": "))
+            return false;
+        
+        if (!print_value(generator, object->values[i]))
+            return false; 
+
+        if (i != object->count - 1 && !print_buffer_append_char(&generator->buffer, ','))
+            return false;
+        
+        if (!print_buffer_append_char(&generator->buffer, '\n'))
+            return false;
+    }
+
+    generator->depth--;
+
+    if (!print_depth(&generator->buffer, generator->depth))
+        return false;
+
+    if (!print_buffer_append_char(&generator->buffer, '}'))
+        return false;
+
+    return true;
+}
+
+// Prints json value into generator's print buffer.
 // Returns true on success, and false on fail.
 static bool print_value(struct json_generator* generator, struct ki_json_val* val)
 {
@@ -264,7 +309,8 @@ static bool print_value(struct json_generator* generator, struct ki_json_val* va
             return print_null(&generator->buffer);
         case KI_JSON_VAL_ARRAY:
             return print_array(generator, &val->value.array);
-        //TODO: case KI_JSON_VAL_OBJECT:
+        case KI_JSON_VAL_OBJECT:
+            return print_object(generator, &val->value.object);
         default:
             return false;
     }
