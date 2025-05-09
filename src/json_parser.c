@@ -462,7 +462,7 @@ static bool parse_number(struct json_reader* reader, double* number)
     if (endptr != NULL)
         reader->offset += (endptr - buffer);
 
-    return endptr != buffer;
+    return endptr != buffer && reader->offset <= reader->length;
 }
 
 // Checks whether the next characters are the given literal.
