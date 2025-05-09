@@ -132,14 +132,13 @@ static int hex_digit_to_int(char hex_digit)
         return -1;
 }
 
-// Parse a unicode code point in a string.
-// Only XXXX format is supported, where each X is a hex digit.
-// Returns codepoint (unicode code point), 0 on fail.
-static uint32_t str_to_unicode_codepoint(const char* string)
+// Reads 4 hex digits in string.
+// Returns read number, 0 on fail.
+static uint32_t read_hex4(const char* string)
 {
     assert(string);
 
-    uint32_t codepoint = 0;
+    uint32_t num = 0;
 
     //read in 4 hex digits and convert them to dec
     for (int i = 0; i < 4; i++)
@@ -150,11 +149,11 @@ static uint32_t str_to_unicode_codepoint(const char* string)
         if (digit == -1)
             return 0;
 
-        codepoint <<= 4; //shift 4 bits to left, adding 4 zero-bits at the end
-        codepoint += (uint32_t)digit; //fill those zero-bits
+        num <<= 4; //shift 4 bits to left, adding 4 zero-bits at the end
+        num += (uint32_t)digit; //fill those zero-bits
     }
 
-    return codepoint;
+    return num;
 }
 
 // Convert an unicode code point to utf8 bytes.
@@ -263,7 +262,7 @@ static size_t utf16_literal_to_utf8(const char* literal, const char* end, unsign
     if (end - literal < 6)
         return 0;
 
-    uint32_t codepoint = str_to_unicode_codepoint(literal + 2);
+    uint32_t codepoint = read_hex4(literal + 2);
 
     //invalid codepoint
     if (codepoint == 0)
