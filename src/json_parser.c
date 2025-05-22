@@ -458,7 +458,7 @@ static bool parse_number(struct json_reader* reader, double* number)
     char* endptr;
     *number = strtod(buffer, &endptr);
 
-    //move reader to endptr
+    //move reader to endptr (char byte after last number character)
     if (endptr != NULL)
         reader->offset += (endptr - buffer);
 
