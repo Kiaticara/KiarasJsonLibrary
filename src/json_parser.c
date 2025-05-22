@@ -250,19 +250,47 @@ static char char_to_single_escape_sequence_char(char type)
     }
 }
 
-// Converts next utf16 literal (XXXX where X is a hex digit) to utf 8 bytes. 
+//TODO: code these in
+#define IS_HIGH_SURROGATE(byte) false
+#define IS_LOW_SURROGATE(byte) false
+
+// Converts next utf16 literal (\uXXXX or \uXXXX\uXXXX where X is any hex digit) to utf 8 bytes, outs sequence length.
 // Returns number of bytes written, 0 on fail.
-static size_t utf16_literal_to_utf8(const char* literal, const char* end, unsigned char* utf8, size_t size)
+static size_t utf16_literal_to_utf8(const char* literal, const char* end, unsigned char* utf8, size_t size, size_t* sequence_length)
 {
     if (literal == NULL || utf8 == NULL)
         return 0;
 
     //TODO: surrogate pairs
 
+    //TODO: check for \u
+
     if (end - literal < 6)
-        return 0;
+        return 0; //TODO: replacement char
 
     uint32_t codepoint = read_hex4(literal + 2);
+
+    if (IS_HIGH_SURROGATE(codepoint))
+    {
+        if (sequence_length != NULL)
+            *sequence_length = 12;
+
+        //TODO: low surrogate
+
+        //TODO: check for \u
+
+        if (end - literal < 12)
+            return 0;
+
+        uint32_t low = read_hex4(literal + 8);
+
+        if (!IS_LOW_SURROGATE(low))
+            return 0; //TODO: replacement char
+    }
+    else if (sequence_length != NULL)
+    {
+        *sequence_length = 6;
+    }
 
     //invalid codepoint
     if (codepoint == 0)
@@ -295,9 +323,7 @@ static int escape_sequence_to_utf8(const char* string, const char* string_end, u
 
     if (escape_char_type == 'u') //unicode code point, convert to utf8 bytes
     {
-        //TODO: surrogate pairs might also cause lengths of 12
-        size_t num_bytes = utf16_literal_to_utf8(string, string_end, bytes, buffer_size);
-        *sequence_length = 6;
+        size_t num_bytes = utf16_literal_to_utf8(string, string_end, bytes, buffer_size, sequence_length);
 
         return num_bytes;
     }
