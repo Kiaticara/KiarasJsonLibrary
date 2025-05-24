@@ -250,9 +250,8 @@ static char char_to_single_escape_sequence_char(char type)
     }
 }
 
-//TODO: code these in
 #define IS_HIGH_SURROGATE(byte) (byte >= 0xD800 && byte <= 0xDBFF)
-#define IS_LOW_SURROGATE(byte) false
+#define IS_LOW_SURROGATE(byte) (byte >= 0xDC00 && byte <= 0xDFFF)
 
 // Converts next utf16 literal (\uXXXX or \uXXXX\uXXXX where X is any hex digit) to codepoint, outs sequence length.
 // Returns codepoint, 0 on fail.
