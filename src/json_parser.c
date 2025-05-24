@@ -339,9 +339,7 @@ static int escape_sequence_to_utf8(const char* string, const char* string_end, u
 
     if (escape_char_type == 'u') //unicode code point, convert to utf8 bytes
     {
-        size_t num_bytes = utf16_literal_to_utf8(string, string_end, bytes, buffer_size, sequence_length);
-
-        return num_bytes;
+        return utf16_literal_to_utf8(string, string_end, bytes, buffer_size, sequence_length);
     }
     else //single char
     {
