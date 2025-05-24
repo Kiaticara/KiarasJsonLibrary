@@ -252,6 +252,7 @@ static char char_to_single_escape_sequence_char(char type)
 
 #define IS_HIGH_SURROGATE(byte) (byte >= 0xD800 && byte <= 0xDBFF)
 #define IS_LOW_SURROGATE(byte) (byte >= 0xDC00 && byte <= 0xDFFF)
+#define COMBINE_SURROGATES(high, low) ((high - 0xD800) * 0x400 + (low - 0xDC00) + 0x10000);
 
 // Converts next utf16 literal (\uXXXX or \uXXXX\uXXXX where X is any hex digit) to codepoint, outs sequence length.
 // Returns codepoint, 0 on fail.
@@ -259,8 +260,6 @@ static uint32_t utf16_literal_to_codepoint(const char* literal, const char* end,
 {
     if (literal == NULL || end == NULL)
         return 0;
-
-    //TODO: surrogate pairs
 
     if (end - literal < 6)
         return 0;
@@ -273,11 +272,6 @@ static uint32_t utf16_literal_to_codepoint(const char* literal, const char* end,
 
     if (IS_HIGH_SURROGATE(codepoint))
     {
-        if (sequence_length != NULL)
-            *sequence_length = 12;
-
-        //TODO: low surrogate
-
         if (end - literal < 12)
             return 0;
 
@@ -290,7 +284,10 @@ static uint32_t utf16_literal_to_codepoint(const char* literal, const char* end,
         if (!IS_LOW_SURROGATE(low))
             return 0;
 
-        //TODO: combine surrogates into single codepoint
+        codepoint = COMBINE_SURROGATES(codepoint, low);
+    
+        if (sequence_length != NULL)
+            *sequence_length = 12;
     }
     else if (sequence_length != NULL)
     {
