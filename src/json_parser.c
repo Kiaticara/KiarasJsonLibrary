@@ -258,6 +258,8 @@ static char char_to_single_escape_sequence_char(char type)
 // Returns codepoint, 0 on fail.
 static uint32_t utf16_literal_to_codepoint(const char* literal, const char* end, size_t* sequence_length)
 {
+    //surrogate pair ref: https://en.wikipedia.org/wiki/UTF-16#U+D800_to_U+DFFF_(surrogates)
+
     if (literal == NULL || end == NULL)
         return 0;
 
