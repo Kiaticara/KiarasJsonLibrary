@@ -263,9 +263,11 @@ static uint32_t utf16_literal_to_codepoint(const char* literal, const char* end,
 
     //TODO: surrogate pairs
 
-    //TODO: check for \u
-
     if (end - literal < 6)
+        return 0;
+
+    //check for \u
+    if (literal[0] != '\\' || literal[1] != 'u')
         return 0;
 
     uint32_t codepoint = read_hex4(literal + 2);
@@ -277,9 +279,11 @@ static uint32_t utf16_literal_to_codepoint(const char* literal, const char* end,
 
         //TODO: low surrogate
 
-        //TODO: check for \u
-
         if (end - literal < 12)
+            return 0;
+
+        //check for \u
+        if (literal[6] != '\\' || literal[7] != 'u')
             return 0;
 
         uint32_t low = read_hex4(literal + 8);
