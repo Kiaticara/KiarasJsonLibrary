@@ -254,11 +254,11 @@ static char char_to_single_escape_sequence_char(char type)
 #define IS_HIGH_SURROGATE(byte) false
 #define IS_LOW_SURROGATE(byte) false
 
-// Converts next utf16 literal (\uXXXX or \uXXXX\uXXXX where X is any hex digit) to utf 8 bytes, outs sequence length.
-// Returns number of bytes written, 0 on fail.
-static size_t utf16_literal_to_utf8(const char* literal, const char* end, unsigned char* utf8, size_t size, size_t* sequence_length)
+// Converts next utf16 literal (\uXXXX or \uXXXX\uXXXX where X is any hex digit) to codepoint, outs sequence length.
+// Returns codepoint, 0 on fail.
+static uint32_t utf16_literal_to_codepoint(const char* literal, const char* end, size_t* sequence_length)
 {
-    if (literal == NULL || utf8 == NULL)
+    if (literal == NULL || end == NULL)
         return 0;
 
     //TODO: surrogate pairs
@@ -266,7 +266,7 @@ static size_t utf16_literal_to_utf8(const char* literal, const char* end, unsign
     //TODO: check for \u
 
     if (end - literal < 6)
-        return 0; //TODO: replacement char
+        return 0;
 
     uint32_t codepoint = read_hex4(literal + 2);
 
@@ -285,12 +285,26 @@ static size_t utf16_literal_to_utf8(const char* literal, const char* end, unsign
         uint32_t low = read_hex4(literal + 8);
 
         if (!IS_LOW_SURROGATE(low))
-            return 0; //TODO: replacement char
+            return 0;
+
+        //TODO: combine surrogates into single codepoint
     }
     else if (sequence_length != NULL)
     {
         *sequence_length = 6;
     }
+
+    return codepoint;
+}
+
+// Converts next utf16 literal (\uXXXX or \uXXXX\uXXXX where X is any hex digit) to utf 8 bytes, outs sequence length.
+// Returns number of bytes written, 0 on fail.
+static size_t utf16_literal_to_utf8(const char* literal, const char* end, unsigned char* utf8, size_t size, size_t* sequence_length)
+{
+    if (literal == NULL || utf8 == NULL)
+        return 0;
+
+    uint32_t codepoint = utf16_literal_to_codepoint(literal, end, sequence_length);
 
     //invalid codepoint
     if (codepoint == 0)
