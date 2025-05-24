@@ -156,6 +156,32 @@ static uint32_t read_hex4(const char* string)
     return num;
 }
 
+// Escapes given char with a backslash (n -> \n, r -> \r, ...).
+// Does not support \u, nor any character escape sequences that aren't used in json.
+// Returns '\0' on fail.
+static char char_to_single_escape_sequence_char(char type)
+{
+    switch(type) //escape char type
+    {
+        case '\"': //double quotation marks
+            return '\"';
+        case '\\': //reverse solidus
+            return '\\'; 
+        case 'b': //backspace
+            return '\b';
+        case 'f': //form feed
+            return '\f';
+        case 'n': //line feed, line break
+            return '\n';
+        case 'r': //carriage return
+            return '\r';
+        case 't': //horizontal tab
+            return '\t';
+        default:
+            return '\0';
+    }
+}
+
 // Convert an unicode code point to utf8 bytes.
 // Returns number of bytes written, 0 on fail.
 static int unicode_codepoint_to_utf8(uint32_t codepoint, unsigned char* utf8, size_t buffer_size)
@@ -222,32 +248,6 @@ static int unicode_codepoint_to_utf8(uint32_t codepoint, unsigned char* utf8, si
     utf8[0] |= (codepoint & ((2 << remaining_bits) - 1));
 
     return bytes;
-}
-
-// Escapes given char with a backslash (n -> \n, r -> \r, ...).
-// Does not support \u, nor any character escape sequences that aren't used in json.
-// Returns '\0' on fail.
-static char char_to_single_escape_sequence_char(char type)
-{
-    switch(type) //escape char type
-    {
-        case '\"': //double quotation marks
-            return '\"';
-        case '\\': //reverse solidus
-            return '\\'; 
-        case 'b': //backspace
-            return '\b';
-        case 'f': //form feed
-            return '\f';
-        case 'n': //line feed, line break
-            return '\n';
-        case 'r': //carriage return
-            return '\r';
-        case 't': //horizontal tab
-            return '\t';
-        default:
-            return '\0';
-    }
 }
 
 #define IS_HIGH_SURROGATE(byte) (byte >= 0xD800 && byte <= 0xDBFF)
