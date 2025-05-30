@@ -13,6 +13,10 @@
 // utf8 characters have 4 bytes max
 #define CHARACTER_MAX_BUFFER_SIZE 4
 
+#define IS_HIGH_SURROGATE(byte) (byte >= 0xD800 && byte <= 0xDBFF)
+#define IS_LOW_SURROGATE(byte) (byte >= 0xDC00 && byte <= 0xDFFF)
+#define COMBINE_SURROGATES(high, low) ((high - 0xD800) * 0x400 + (low - 0xDC00) + 0x10000);
+
 //TODO: utf8 replacement char
 
 struct json_reader
@@ -249,10 +253,6 @@ static int unicode_codepoint_to_utf8(uint32_t codepoint, unsigned char* utf8, si
 
     return bytes;
 }
-
-#define IS_HIGH_SURROGATE(byte) (byte >= 0xD800 && byte <= 0xDBFF)
-#define IS_LOW_SURROGATE(byte) (byte >= 0xDC00 && byte <= 0xDFFF)
-#define COMBINE_SURROGATES(high, low) ((high - 0xD800) * 0x400 + (low - 0xDC00) + 0x10000);
 
 // Converts next utf16 literal (\uXXXX or \uXXXX\uXXXX where X is any hex digit) to codepoint, outs sequence length.
 // Returns codepoint, 0 on fail.
