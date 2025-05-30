@@ -13,6 +13,10 @@
 // utf8 characters have 4 bytes max
 #define CHARACTER_MAX_BUFFER_SIZE 4
 
+#define IS_HIGH_SURROGATE(byte) (byte >= 0xD800 && byte <= 0xDBFF)
+#define IS_LOW_SURROGATE(byte) (byte >= 0xDC00 && byte <= 0xDFFF)
+#define COMBINE_SURROGATES(high, low) ((high - 0xD800) * 0x400 + (low - 0xDC00) + 0x10000);
+
 //TODO: utf8 replacement char
 
 struct json_reader
@@ -156,6 +160,32 @@ static uint32_t read_hex4(const char* string)
     return num;
 }
 
+// Escapes given char with a backslash (n -> \n, r -> \r, ...).
+// Does not support \u, nor any character escape sequences that aren't used in json.
+// Returns '\0' on fail.
+static char char_to_single_escape_sequence_char(char type)
+{
+    switch(type) //escape char type
+    {
+        case '\"': //double quotation marks
+            return '\"';
+        case '\\': //reverse solidus
+            return '\\'; 
+        case 'b': //backspace
+            return '\b';
+        case 'f': //form feed
+            return '\f';
+        case 'n': //line feed, line break
+            return '\n';
+        case 'r': //carriage return
+            return '\r';
+        case 't': //horizontal tab
+            return '\t';
+        default:
+            return '\0';
+    }
+}
+
 // Convert an unicode code point to utf8 bytes.
 // Returns number of bytes written, 0 on fail.
 static int unicode_codepoint_to_utf8(uint32_t codepoint, unsigned char* utf8, size_t buffer_size)
@@ -224,45 +254,59 @@ static int unicode_codepoint_to_utf8(uint32_t codepoint, unsigned char* utf8, si
     return bytes;
 }
 
-// Escapes given char with a backslash (n -> \n, r -> \r, ...).
-// Does not support \u, nor any character escape sequences that aren't used in json.
-// Returns '\0' on fail.
-static char char_to_single_escape_sequence_char(char type)
+// Converts next utf16 literal (\uXXXX or \uXXXX\uXXXX where X is any hex digit) to codepoint, outs sequence length.
+// Returns codepoint, 0 on fail.
+static uint32_t utf16_literal_to_codepoint(const char* literal, const char* end, size_t* sequence_length)
 {
-    switch(type) //escape char type
-    {
-        case '\"': //double quotation marks
-            return '\"';
-        case '\\': //reverse solidus
-            return '\\'; 
-        case 'b': //backspace
-            return '\b';
-        case 'f': //form feed
-            return '\f';
-        case 'n': //line feed, line break
-            return '\n';
-        case 'r': //carriage return
-            return '\r';
-        case 't': //horizontal tab
-            return '\t';
-        default:
-            return '\0';
-    }
-}
+    //surrogate pair ref: https://en.wikipedia.org/wiki/UTF-16#U+D800_to_U+DFFF_(surrogates)
 
-// Converts next utf16 literal (XXXX where X is a hex digit) to utf 8 bytes. 
-// Returns number of bytes written, 0 on fail.
-static size_t utf16_literal_to_utf8(const char* literal, const char* end, unsigned char* utf8, size_t size)
-{
-    if (literal == NULL || utf8 == NULL)
+    if (literal == NULL || end == NULL)
         return 0;
-
-    //TODO: surrogate pairs
 
     if (end - literal < 6)
         return 0;
 
+    //check for \u
+    if (literal[0] != '\\' || literal[1] != 'u')
+        return 0;
+
     uint32_t codepoint = read_hex4(literal + 2);
+
+    if (IS_HIGH_SURROGATE(codepoint))
+    {
+        if (end - literal < 12)
+            return 0;
+
+        //check for \u
+        if (literal[6] != '\\' || literal[7] != 'u')
+            return 0;
+
+        uint32_t low = read_hex4(literal + 8);
+
+        if (!IS_LOW_SURROGATE(low))
+            return 0;
+
+        codepoint = COMBINE_SURROGATES(codepoint, low);
+    
+        if (sequence_length != NULL)
+            *sequence_length = 12;
+    }
+    else if (sequence_length != NULL)
+    {
+        *sequence_length = 6;
+    }
+
+    return codepoint;
+}
+
+// Converts next utf16 literal (\uXXXX or \uXXXX\uXXXX where X is any hex digit) to utf 8 bytes, outs sequence length.
+// Returns number of bytes written, 0 on fail.
+static size_t utf16_literal_to_utf8(const char* literal, const char* end, unsigned char* utf8, size_t size, size_t* sequence_length)
+{
+    if (literal == NULL || utf8 == NULL)
+        return 0;
+
+    uint32_t codepoint = utf16_literal_to_codepoint(literal, end, sequence_length);
 
     //invalid codepoint
     if (codepoint == 0)
@@ -295,11 +339,7 @@ static int escape_sequence_to_utf8(const char* string, const char* string_end, u
 
     if (escape_char_type == 'u') //unicode code point, convert to utf8 bytes
     {
-        //TODO: surrogate pairs might also cause lengths of 12
-        size_t num_bytes = utf16_literal_to_utf8(string, string_end, bytes, buffer_size);
-        *sequence_length = 6;
-
-        return num_bytes;
+        return utf16_literal_to_utf8(string, string_end, bytes, buffer_size, sequence_length);
     }
     else //single char
     {
