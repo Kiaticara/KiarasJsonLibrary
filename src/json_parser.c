@@ -213,8 +213,8 @@ static int unicode_codepoint_to_utf8(uint32_t codepoint, unsigned char* utf8, si
     else if (codepoint >= 0x010000 && codepoint <= 0x10FFFF)
         bytes = 4;
 
-    //invalid codepoint or buffer size too small for utf8 bytes
-    if (bytes == 0 || (size_t)bytes > buffer_size)
+    //buffer size too small for utf8 bytes
+    if ((size_t)bytes > buffer_size)
         return 0;
 
     if (bytes == 1)
