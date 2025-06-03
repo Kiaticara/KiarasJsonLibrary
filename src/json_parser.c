@@ -17,7 +17,7 @@
 #define IS_LOW_SURROGATE(byte) (byte >= 0xDC00 && byte <= 0xDFFF)
 #define COMBINE_SURROGATES(high, low) ((high - 0xD800) * 0x400 + (low - 0xDC00) + 0x10000);
 
-//TODO: utf8 replacement char
+#define CODEPOINT_REPLACEMENT_CHAR 0xFFFD
 
 struct json_reader
 {
@@ -187,6 +187,7 @@ static char char_to_single_escape_sequence_char(char type)
 }
 
 // Convert an unicode code point to utf8 bytes.
+// Converts invalid code points to the replacement char.
 // Returns number of bytes written, 0 on fail.
 static int unicode_codepoint_to_utf8(uint32_t codepoint, unsigned char* utf8, size_t buffer_size)
 {
@@ -194,6 +195,10 @@ static int unicode_codepoint_to_utf8(uint32_t codepoint, unsigned char* utf8, si
 
     //oh my god text encoding really is something, isn't it
     //SEE: https://en.wikipedia.org/wiki/UTF-8#Description
+
+    //codepoint is for null character (not supported) or outside 0x10FFFF, replace with replacement char codepoint
+    if (codepoint == 0 || codepoint > 0x10FFFF)
+        codepoint = CODEPOINT_REPLACEMENT_CHAR;
 
     //determine amount of utf8 bytes
     
@@ -205,7 +210,7 @@ static int unicode_codepoint_to_utf8(uint32_t codepoint, unsigned char* utf8, si
         bytes = 2;
     else if (codepoint >= 0x0800 && codepoint <= 0xFFFF)
         bytes = 3;
-    else if (codepoint >= 0x010000 && codepoint <= 0x10FFFF) //impossible in ki_json as only 4 hex digits are supported
+    else if (codepoint >= 0x010000 && codepoint <= 0x10FFFF)
         bytes = 4;
 
     //invalid codepoint or buffer size too small for utf8 bytes
@@ -312,12 +317,8 @@ static size_t utf16_literal_to_utf8(const char* literal, const char* end, unsign
 
     uint32_t codepoint = utf16_literal_to_codepoint(literal, end, sequence_length);
 
-    //invalid codepoint
-    if (codepoint == 0)
-        return 0;
     //encode codepoint as utf8 bytes into bytes buffer
-    else
-        return unicode_codepoint_to_utf8(codepoint, utf8, size);
+    return unicode_codepoint_to_utf8(codepoint, utf8, size);
 }
 
 // Converts escape sequence in (string) to utf8 bytes and output to (bytes) along with the length of read sequence.
