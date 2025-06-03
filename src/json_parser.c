@@ -198,7 +198,7 @@ static int unicode_codepoint_to_utf8(uint32_t codepoint, unsigned char* utf8, si
 
     //codepoint is for null character (not supported) or outside 0x10FFFF, replace with replacement char codepoint
     if (codepoint == 0 || codepoint > 0x10FFFF)
-        codepoint = CODEPOINT_REPLACEMENT_CHAR;
+        codepoint = CODEPOINT_REPLACEMENT_CHAR; //0xEF, 0xBF, 0xBD
 
     //determine amount of utf8 bytes
     
