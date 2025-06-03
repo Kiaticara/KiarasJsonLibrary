@@ -216,7 +216,7 @@ static int unicode_codepoint_to_utf8(uint32_t codepoint, unsigned char* utf8, si
     {
         //use 7 least significant bits of codepoint
         //keep most significant bit as 0
-        utf8[0] = (unsigned char)(codepoint & ((2 << 7) - 1));
+        utf8[0] = (codepoint & ((1 << 7) - 1));
         return bytes;
     }
 
@@ -227,12 +227,10 @@ static int unicode_codepoint_to_utf8(uint32_t codepoint, unsigned char* utf8, si
     //least significant bits are in last byte, so start from there
     for (int i = bytes - 1; i > 0; i--)
     {
-        //get 6 least significant bits of codepoint
-        unsigned char bits = (codepoint & ((2 << 6) - 1));
+        //add 6 least significant bits of codepoint
+        utf8[i] |= (codepoint & ((1 << 6) - 1));
         //shift codepoint over by read bits
         codepoint >>= 6;
-        //add bits
-        utf8[i] |= bits;
     }
 
     //remaining bits to fill with codepoint bits
@@ -242,14 +240,10 @@ static int unicode_codepoint_to_utf8(uint32_t codepoint, unsigned char* utf8, si
     //110 -> 2 bytes
     //1110 -> 3 bytes
     //11110 -> 4 bytes
-    //0b10 << 2
-    //0b1000 - 0b01
-    //0b0111 - 0b01
-    //0b0110
     utf8[0] = ((2 << bytes) - 2) << remaining_bits;
 
     //fill remaining bits with remaining least significant bits of codepoint
-    utf8[0] |= (codepoint & ((2 << remaining_bits) - 1));
+    utf8[0] |= (codepoint & ((1 << remaining_bits) - 1));
 
     return bytes;
 }
