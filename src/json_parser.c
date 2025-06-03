@@ -272,6 +272,10 @@ static uint32_t utf16_literal_to_codepoint(const char* literal, const char* end,
 
     uint32_t codepoint = read_hex4(literal + 2);
 
+    //low surrogates can't be first
+    if (IS_LOW_SURROGATE(codepoint))
+        return 0;
+
     if (IS_HIGH_SURROGATE(codepoint))
     {
         if (end - literal < 12)
