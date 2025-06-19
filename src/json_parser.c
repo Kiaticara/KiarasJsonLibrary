@@ -838,27 +838,7 @@ struct ki_json_val* ki_json_parse_string(const char* string)
 {
     size_t length = strlen(string);
 
-    struct json_reader reader = {0};
-    
-    if (!reader_init(&reader, string, length))
-        return NULL;
-
-    struct ki_json_val* val = NULL;
-    bool success = parse_value(&reader, &val);
-    
-    reader_fini(&reader);
-
-    if (!success)
-    {
-        if (val != NULL)
-            ki_json_val_free(val);
-
-        return NULL;
-    }
-    else 
-    {
-        return val;
-    }
+    return ki_json_nparse_string(string, length);
 }
 
 // Parse no more than n characters of string to a json tree.
