@@ -851,6 +851,10 @@ struct ki_json_val* ki_json_nparse_string(const char* string, size_t n)
     if (!reader_init(&reader, string, n))
         return NULL;
 
+    //skip byte order mark if necessary
+    if (has_next_literal(&reader, "\uFEFF"))
+        reader.offset += 3;
+
     struct ki_json_val* val = NULL;
     bool success = parse_value(&reader, &val);
     
