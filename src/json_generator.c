@@ -9,6 +9,8 @@
 #include "print_buffer.h"
 #include "ki_json/json.h"
 
+#define IS_CONTROL_CODEPOINT(codepoint) (codepoint < 0x001F || (codepoint >= 0x0080 && codepoint <= 0x009F))
+
 struct json_generator
 {
     struct print_buffer buffer;
@@ -87,14 +89,13 @@ static uint32_t utf8_to_codepoint(unsigned char* bytes)
 
 #pragma region Printing
 
-// Prints a ASCII character inside a string value (escaped if needed) into print buffer.
-// Returns true on success, and false on fail.
-static bool print_formatted_string_ascii_char(struct print_buffer* buffer, char character)
+//TODO: comment
+static bool print_control_char(struct print_buffer* buffer, unsigned char control_char)
 {
     if (buffer == NULL)
         return false;
 
-    switch(character)
+    switch(control_char)
     {
         case '\"': //double quotation marks
             return print_buffer_append_string(buffer, "\\n");
@@ -111,14 +112,13 @@ static bool print_formatted_string_ascii_char(struct print_buffer* buffer, char 
         case '\t': //horizontal tab
             return print_buffer_append_string(buffer, "\\t");
         default:
-            return print_buffer_append_char(buffer, character);
+        {
+            char escaped[7];
+            snprintf(escaped, sizeof(escaped), "\\u%04.4X", control_char);
+            return print_buffer_append_string(buffer, escaped);
+        }
     }
 }
-
-// Prints codepoint into print buffer.
-// Supports 4-hex digits only. (Basically 16-bits only, lol)
-// Returns true on success, and false on fail.
-static bool print_codepoint(uint32_t codepoint);
 
 // Prints json-formatted string into print buffer.
 // Returns true on success, and false on fail.
@@ -135,9 +135,9 @@ static bool print_string(struct print_buffer* buffer, const char* string)
     
     while (string[pos] != '\0')
     {
-        //TODO: utf8 escaping
+        unsigned char byte = (unsigned char)string[pos];
 
-        if (!print_formatted_string_ascii_char(buffer, string[pos]))
+        if ((IS_CONTROL_CODEPOINT(byte) && !print_control_char(buffer, byte)) || !print_buffer_append_char(buffer, string[pos]))
             return false;
 
         pos++;
