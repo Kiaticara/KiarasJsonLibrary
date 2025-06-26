@@ -1,4 +1,5 @@
-#pragma once
+#ifndef KI_JSON_JSON_H
+#define KI_JSON_JSON_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -259,3 +260,5 @@ bool ki_json_val_set_string(struct ki_json_val* val, const char* string);
 void ki_json_val_free(struct ki_json_val* val);
 
 #pragma endregion
+
+#endif //KI_JSON_JSON_H
