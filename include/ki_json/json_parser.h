@@ -4,7 +4,6 @@
 // Functions for parsing a json string to a json tree
 
 #include <stddef.h>
-#include <stdio.h>
 
 #include "ki_json/json.h"
 
