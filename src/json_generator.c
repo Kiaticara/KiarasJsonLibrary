@@ -10,7 +10,7 @@
 #include "print_buffer.h"
 #include "ki_json/json.h"
 
-#define IS_CONTROL_CODEPOINT(codepoint) (codepoint < 0x001F || (codepoint >= 0x0080 && codepoint <= 0x009F))
+#define IS_CONTROL_CODEPOINT(codepoint) (codepoint < 0x001F || (codepoint >= 0x007F && codepoint <= 0x009F))
 
 //ref: https://en.wikipedia.org/wiki/UTF-16#U+D800_to_U+DFFF_(surrogates)
 #define CODEPOINT_HIGH_SURROGATE(codepoint) (((codepoint - 0x10000) >> 10) + 0xD800)
