@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <ctype.h>
 
 #include "print_buffer.h"
 #include "ki_json/json.h"
@@ -66,7 +65,7 @@ static bool print_string(struct print_buffer* buffer, const char* string)
     
     while (string[pos] != '\0')
     {
-        if ((iscntrl(string[pos]) && !print_control_char(buffer, string[pos])) || !print_buffer_append_char(buffer, string[pos]))
+        if ((string[pos] <= 0x001F && !print_control_char(buffer, string[pos])) || !print_buffer_append_char(buffer, string[pos]))
             return false;
 
         pos++;
