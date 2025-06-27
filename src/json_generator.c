@@ -71,7 +71,9 @@ static bool print_string(struct print_buffer* buffer, const char* string)
                 return false;
         }
         else if (!print_buffer_append_char(buffer, string[pos]))
+        {
             return false;
+        }
 
         pos++;
     }
