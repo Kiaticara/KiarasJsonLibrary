@@ -19,7 +19,8 @@ struct json_generator
 
 #pragma region Printing
 
-//TODO: comment
+// Prints json-formatted control character into print buffer, through an escape sequence.
+// Returns true on success, and false on fail.
 static bool print_control_char(struct print_buffer* buffer, char control_char)
 {
     if (buffer == NULL)
