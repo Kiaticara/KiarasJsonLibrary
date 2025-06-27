@@ -109,7 +109,7 @@ static bool print_codepoint(struct print_buffer* buffer, uint32_t codepoint)
     //ref: https://en.wikipedia.org/wiki/UTF-16#U+D800_to_U+DFFF_(surrogates)
 
     //surrogate pair
-    if (codepoint >= 0x10000 && codepoint <= 0x10FFFF)
+    if (codepoint >= 0x10000)
     {
         char escaped[13]; // \uXXXX\uXXXX\0
         snprintf(escaped, sizeof(escaped), "\\u%04.4X\\u%04.4X", CODEPOINT_HIGH_SURROGATE(codepoint), CODEPOINT_LOW_SURROGATE(codepoint));
