@@ -65,7 +65,9 @@ static bool print_string(struct print_buffer* buffer, const char* string)
     
     while (string[pos] != '\0')
     {
-        if ((string[pos] <= 0x001F && !print_control_char(buffer, string[pos])) || !print_buffer_append_char(buffer, string[pos]))
+        if (string[pos] >= 0x0000 && string[pos] <= 0x001F && !print_control_char(buffer, string[pos]))
+            return false;
+        else if (string[pos] > 0x001F && !print_buffer_append_char(buffer, string[pos]))
             return false;
 
         pos++;
