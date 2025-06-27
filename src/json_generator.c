@@ -6,16 +6,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <ctype.h>
 
 #include "print_buffer.h"
 #include "ki_json/json.h"
-
-#define IS_CONTROL_CODEPOINT(codepoint) (codepoint < 0x001F || (codepoint >= 0x007F && codepoint <= 0x009F))
-
-//ref: https://en.wikipedia.org/wiki/UTF-16#U+D800_to_U+DFFF_(surrogates)
-#define CODEPOINT_HIGH_SURROGATE(codepoint) (((codepoint - 0x10000) >> 10) + 0xD800)
-// (...) & ((1 << 10) - 1) takes 10 lowest bits
-#define CODEPOINT_LOW_SURROGATE(codepoint) (((codepoint - 0x10000) & ((1 << 10) - 1)) + 0xDC00)
 
 struct json_generator
 {
@@ -95,36 +89,8 @@ static uint32_t utf8_to_codepoint(unsigned char* bytes)
 
 #pragma region Printing
 
-// Prints json-formatted unicode codepoint (utf-16 literal) into print buffer.
-// Returns true on success, and false on fail.
-// TODO: test
-static bool print_codepoint(struct print_buffer* buffer, uint32_t codepoint)
-{
-    assert(buffer && codepoint <= 0x10FFFF);
-
-    //no buffer or invalid codepoint
-    if (buffer == NULL || codepoint > 0x10FFFF)
-        return false;
-
-    //ref: https://en.wikipedia.org/wiki/UTF-16#U+D800_to_U+DFFF_(surrogates)
-
-    //surrogate pair
-    if (codepoint >= 0x10000)
-    {
-        char escaped[13]; // \uXXXX\uXXXX\0
-        snprintf(escaped, sizeof(escaped), "\\u%04.4X\\u%04.4X", CODEPOINT_HIGH_SURROGATE(codepoint), CODEPOINT_LOW_SURROGATE(codepoint));
-        return print_buffer_append_string(buffer, escaped);
-    }
-    else 
-    {
-        char escaped[7]; // \uXXXX\0
-        snprintf(escaped, sizeof(escaped), "\\u%04.4X", codepoint);
-        return print_buffer_append_string(buffer, escaped);
-    }
-}
-
 //TODO: comment
-static bool print_control_char(struct print_buffer* buffer, unsigned char control_char)
+static bool print_control_char(struct print_buffer* buffer, char control_char)
 {
     if (buffer == NULL)
         return false;
@@ -146,7 +112,11 @@ static bool print_control_char(struct print_buffer* buffer, unsigned char contro
         case '\t': //horizontal tab
             return print_buffer_append_string(buffer, "\\t");
         default:
-            return print_codepoint(buffer, (uint32_t)control_char);
+        {
+            char escaped[7]; // \uXXXX\0
+            snprintf(escaped, sizeof(escaped), "\\u%04.4X", (unsigned char)control_char);
+            return print_buffer_append_string(buffer, escaped);
+        }
     }
 }
 
@@ -165,9 +135,7 @@ static bool print_string(struct print_buffer* buffer, const char* string)
     
     while (string[pos] != '\0')
     {
-        unsigned char byte = (unsigned char)string[pos];
-
-        if ((IS_CONTROL_CODEPOINT(byte) && !print_control_char(buffer, byte)) || !print_buffer_append_char(buffer, string[pos]))
+        if ((iscntrl(string[pos]) && !print_control_char(buffer, string[pos])) || !print_buffer_append_char(buffer, string[pos]))
             return false;
 
         pos++;
