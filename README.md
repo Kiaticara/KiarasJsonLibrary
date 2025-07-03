@@ -6,7 +6,6 @@ Notes:
 
 - Supports utf8 only.
 - \0 (null-terminator) is not supported.
-- Unquoted object keys/names are able to parsed.
 
 ## Headers
 
