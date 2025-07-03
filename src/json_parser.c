@@ -625,48 +625,6 @@ static bool parse_array(struct json_reader* reader, struct ki_json_array* array)
     return true;
 }
 
-// Parses next name of a pair in a json object.
-// Name must be freed when done.
-// Returns true on success and outs name, false on fail.
-// Supported formats: "name" AND name
-static bool parse_name(struct json_reader* reader, char** name)
-{
-    assert(reader && name);
-
-    //if starts with quote, parse name just like a string instead
-    if (reader_can_access(reader, 0) && reader_char_at(reader, 0) == '\"')
-        return parse_string(reader, name);
-
-    size_t name_length = 0;
-
-    while (reader_can_access(reader, name_length) && reader_char_at(reader, name_length) != ':' && !char_is_whitespace(reader_char_at(reader, name_length)))
-        name_length++;
-
-    //name never ended
-    if (!reader_can_access(reader, name_length))
-        return false;
-
-    //alloc name
-    char* new_name = calloc(name_length + 1, sizeof(*new_name));
-
-    //alloc fail
-    if (new_name == NULL)
-        return false;
-
-    //read in name
-    for (size_t i = 0; i < name_length; i++)
-        new_name[i] = reader_char_at(reader, i);
-
-    new_name[name_length] = '\0'; //null-terminator
-
-    //out
-    *name = new_name;
-
-    reader->offset += name_length;
-
-    return true;
-}
-
 // Parse next json object in the json string, using given INIT object.
 // Returns true on success, returns false on fail.
 static bool parse_object(struct json_reader* reader, struct ki_json_object* object)
@@ -686,7 +644,7 @@ static bool parse_object(struct json_reader* reader, struct ki_json_object* obje
     {
         char* name = NULL;
 
-        if (!parse_name(reader, &name))
+        if (!parse_string(reader, &name))
             return false;
 
         reader_skip_whitespace(reader);
@@ -811,8 +769,6 @@ static bool parse_value(struct json_reader* reader, struct ki_json_val** val)
         case '8':
         case '9':
         case '-':
-        case 'e':
-        case 'E':
         case '.':
             new_val->type = KI_JSON_VAL_NUMBER;
             success = parse_number(reader, &new_val->value.number);
@@ -836,9 +792,10 @@ static bool parse_value(struct json_reader* reader, struct ki_json_val** val)
 // Returns NULL on fail.
 struct ki_json_val* ki_json_parse_string(const char* string)
 {
-    size_t length = strlen(string);
-
-    return ki_json_nparse_string(string, length);
+    if (string != NULL)
+        return ki_json_nparse_string(string, strlen(string));
+    else
+        return NULL;
 }
 
 // Parse no more than n characters of string to a json tree.
@@ -846,6 +803,9 @@ struct ki_json_val* ki_json_parse_string(const char* string)
 // Returns NULL on fail.
 struct ki_json_val* ki_json_nparse_string(const char* string, size_t n)
 {
+    if (string == NULL)
+        return NULL;
+
     struct json_reader reader = {0};
 
     if (!reader_init(&reader, string, n))
