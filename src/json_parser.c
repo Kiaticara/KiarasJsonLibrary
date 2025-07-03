@@ -811,8 +811,6 @@ static bool parse_value(struct json_reader* reader, struct ki_json_val** val)
         case '8':
         case '9':
         case '-':
-        case 'e':
-        case 'E':
         case '.':
             new_val->type = KI_JSON_VAL_NUMBER;
             success = parse_number(reader, &new_val->value.number);
