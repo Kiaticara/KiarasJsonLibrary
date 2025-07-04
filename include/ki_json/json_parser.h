@@ -7,12 +7,21 @@
 
 #include "ki_json/json.h"
 
+// TODO: update function comments for error handling
+// TODO: return error types through static parser functions, use reader's ending pos to out error position
+struct ki_json_parser_err
+{
+    enum ki_json_err_type type;
+    const char* json;
+    size_t pos;
+};
+
 // Parse null-terminated string to a json tree.
 // Returns NULL on fail.
-struct ki_json_val* ki_json_parse_string(const char* string);
+struct ki_json_val* ki_json_parse_string(const char* string, struct ki_json_parser_err* err);
 
 // Parse no more than n characters of string to a json tree.
 // Returns NULL on fail.
-struct ki_json_val* ki_json_nparse_string(const char* string, size_t n);
+struct ki_json_val* ki_json_nparse_string(const char* string, size_t n, struct ki_json_parser_err* err);
 
 #endif //KI_JSON_PARSER_H

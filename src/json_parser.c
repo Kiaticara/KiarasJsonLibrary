@@ -571,7 +571,7 @@ static bool parse_null(struct json_reader* reader)
 // Parses next json value in the json string.
 // Val must be freed using ki_json_val_free() when done.
 // Returns true on success and outs val (ki_json_val), returns false on fail.
-static bool parse_value(struct json_reader* reader, struct ki_json_val** val);
+static enum ki_json_err_type parse_value(struct json_reader* reader, struct ki_json_val** val);
 
 // Parse next json array in the json string, using given INIT array.
 // Returns true on success, returns false on fail.
@@ -600,7 +600,7 @@ static bool parse_array(struct json_reader* reader, struct ki_json_array* array)
         struct ki_json_val* val = NULL;
 
         //if failed to parse value, return false
-        if (!parse_value(reader, &val))
+        if (parse_value(reader, &val) != KI_JSON_ERROR_NONE)
             return false;
 
         ki_json_array_add(array, val);
@@ -668,7 +668,7 @@ static bool parse_object(struct json_reader* reader, struct ki_json_object* obje
 
         struct ki_json_val* val = NULL;
 
-        if (!parse_value(reader, &val))
+        if (parse_value(reader, &val) != KI_JSON_ERROR_NONE)
         {
             free(name);
             return false;
@@ -700,7 +700,7 @@ static bool parse_object(struct json_reader* reader, struct ki_json_object* obje
 // Parses next json value in the json string.
 // Val must be freed using ki_json_val_free() when done.
 // Returns true on success and outs val (ki_json_val), returns false on fail.
-static bool parse_value(struct json_reader* reader, struct ki_json_val** val)
+static enum ki_json_err_type parse_value(struct json_reader* reader, struct ki_json_val** val)
 {
     assert(reader && val);
 
@@ -784,16 +784,17 @@ static bool parse_value(struct json_reader* reader, struct ki_json_val** val)
     else if (new_val != NULL)
         ki_json_val_free(new_val);
 
-    return success;
+    //TODO: return other reasons for errors
+    return success ? KI_JSON_ERROR_NONE : KI_JSON_ERROR_UNKNOWN;
 }
 
 // Parse null-terminated string to a json tree.
 // Val returned must be freed when done.
 // Returns NULL on fail.
-struct ki_json_val* ki_json_parse_string(const char* string)
+struct ki_json_val* ki_json_parse_string(const char* string, struct ki_json_parser_err* err)
 {
     if (string != NULL)
-        return ki_json_nparse_string(string, strlen(string));
+        return ki_json_nparse_string(string, strlen(string), err);
     else
         return NULL;
 }
@@ -801,7 +802,7 @@ struct ki_json_val* ki_json_parse_string(const char* string)
 // Parse no more than n characters of string to a json tree.
 // Val returned must be freed when done.
 // Returns NULL on fail.
-struct ki_json_val* ki_json_nparse_string(const char* string, size_t n)
+struct ki_json_val* ki_json_nparse_string(const char* string, size_t n, struct ki_json_parser_err* err)
 {
     if (string == NULL)
         return NULL;
@@ -816,11 +817,18 @@ struct ki_json_val* ki_json_nparse_string(const char* string, size_t n)
         reader.offset += 3;
 
     struct ki_json_val* val = NULL;
-    bool success = parse_value(&reader, &val);
+    enum ki_json_err_type err_type = parse_value(&reader, &val);
+
+    if (err != NULL)
+    {
+        err->json = string;
+        err->pos = reader.offset;
+        err->type = err_type;
+    }
     
     reader_fini(&reader);
 
-    if (!success)
+    if (err_type != KI_JSON_ERROR_NONE)
     {
         if (val != NULL)
             ki_json_val_free(val);

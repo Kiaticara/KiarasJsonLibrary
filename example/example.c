@@ -140,7 +140,8 @@ int main(void)
 
     reader_fini(&reader2);
 
-    struct ki_json_val* val_array = ki_json_parse_string("[ \t[  \"test\", 5.0, true ]\t, [  \"test\", 5.0, true ], {     \t }  , [ ] ]");
+    struct ki_json_parser_err err = {0};
+    struct ki_json_val* val_array = ki_json_parse_string("[ \t[  \"test\", 5.0, true ]\t, [  \"test\", 5.0, true ], {     \t }  , [ ] ]", &err);
 
     if (val_array != NULL)
     {

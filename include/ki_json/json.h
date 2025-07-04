@@ -61,7 +61,7 @@ struct ki_json_val
     } value;
 };
 
-enum ki_json_error_type
+enum ki_json_err_type
 {
     KI_JSON_ERROR_NONE, //no error.
     KI_JSON_ERROR_UNKNOWN, //uh oh...
