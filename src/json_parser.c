@@ -793,10 +793,7 @@ static enum ki_json_err_type parse_value(struct json_reader* reader, struct ki_j
 // Returns NULL on fail.
 struct ki_json_val* ki_json_parse_string(const char* string, struct ki_json_parser_err* err)
 {
-    if (string != NULL)
-        return ki_json_nparse_string(string, strlen(string), err);
-    else
-        return NULL;
+    return ki_json_nparse_string(string, strlen(string), err);
 }
 
 // Parse no more than n characters of string to a json tree.
@@ -804,13 +801,26 @@ struct ki_json_val* ki_json_parse_string(const char* string, struct ki_json_pars
 // Returns NULL on fail.
 struct ki_json_val* ki_json_nparse_string(const char* string, size_t n, struct ki_json_parser_err* err)
 {
+    if (err != NULL)
+    {
+        err->json = string;
+        err->pos = 0;
+        err->type = KI_JSON_ERROR_UNKNOWN;
+    }
+
     if (string == NULL)
+    {
+        err->type = KI_JSON_ERROR_INVALID_ARGS;
         return NULL;
+    }
 
     struct json_reader reader = {0};
 
     if (!reader_init(&reader, string, n))
+    {
+        err->type = KI_JSON_ERROR_MEMORY;
         return NULL;
+    }
 
     //skip byte order mark if necessary
     if (has_next_literal(&reader, "\uFEFF"))
@@ -821,7 +831,6 @@ struct ki_json_val* ki_json_nparse_string(const char* string, size_t n, struct k
 
     if (err != NULL)
     {
-        err->json = string;
         err->pos = reader.offset;
         err->type = err_type;
     }

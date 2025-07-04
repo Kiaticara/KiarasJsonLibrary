@@ -66,6 +66,8 @@ enum ki_json_err_type
     KI_JSON_ERROR_NONE, //no error.
     KI_JSON_ERROR_UNKNOWN, //uh oh...
 
+    KI_JSON_ERROR_INVALID_ARGS, //invalid arguments were given
+
     KI_JSON_ERROR_MEMORY, //memory error, for ex.: allocation fail
 
     KI_JSON_ERROR_UNTERMINATED_STRING, //string value does not end
