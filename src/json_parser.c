@@ -600,7 +600,7 @@ static bool parse_array(struct json_reader* reader, struct ki_json_array* array)
         struct ki_json_val* val = NULL;
 
         //if failed to parse value, return false
-        if (parse_value(reader, &val) != KI_JSON_ERROR_NONE)
+        if (parse_value(reader, &val) != KI_JSON_ERR_NONE)
             return false;
 
         ki_json_array_add(array, val);
@@ -668,7 +668,7 @@ static bool parse_object(struct json_reader* reader, struct ki_json_object* obje
 
         struct ki_json_val* val = NULL;
 
-        if (parse_value(reader, &val) != KI_JSON_ERROR_NONE)
+        if (parse_value(reader, &val) != KI_JSON_ERR_NONE)
         {
             free(name);
             return false;
@@ -785,7 +785,7 @@ static enum ki_json_err_type parse_value(struct json_reader* reader, struct ki_j
         ki_json_val_free(new_val);
 
     //TODO: return other reasons for errors
-    return success ? KI_JSON_ERROR_NONE : KI_JSON_ERROR_UNKNOWN;
+    return success ? KI_JSON_ERR_NONE : KI_JSON_ERR_UNKNOWN;
 }
 
 // Parse null-terminated string to a json tree.
@@ -805,12 +805,12 @@ struct ki_json_val* ki_json_nparse_string(const char* string, size_t n, struct k
     {
         err->json = string;
         err->pos = 0;
-        err->type = KI_JSON_ERROR_UNKNOWN;
+        err->type = KI_JSON_ERR_UNKNOWN;
     }
 
     if (string == NULL)
     {
-        err->type = KI_JSON_ERROR_INVALID_ARGS;
+        err->type = KI_JSON_ERR_INVALID_ARGS;
         return NULL;
     }
 
@@ -818,7 +818,7 @@ struct ki_json_val* ki_json_nparse_string(const char* string, size_t n, struct k
 
     if (!reader_init(&reader, string, n))
     {
-        err->type = KI_JSON_ERROR_MEMORY;
+        err->type = KI_JSON_ERR_MEMORY;
         return NULL;
     }
 
@@ -837,7 +837,7 @@ struct ki_json_val* ki_json_nparse_string(const char* string, size_t n, struct k
     
     reader_fini(&reader);
 
-    if (err_type != KI_JSON_ERROR_NONE)
+    if (err_type != KI_JSON_ERR_NONE)
     {
         if (val != NULL)
             ki_json_val_free(val);
