@@ -64,7 +64,8 @@ struct ki_json_val
 enum ki_json_err_type
 {
     KI_JSON_ERR_NONE, //no error.
-    KI_JSON_ERR_UNKNOWN, //uh oh...
+    KI_JSON_ERR_INTERNAL, //internal error
+    KI_JSON_ERR_TOO_SHORT, //json string is too short
 
     KI_JSON_ERR_INVALID_ARGS, //invalid arguments were given
 
@@ -74,16 +75,13 @@ enum ki_json_err_type
     KI_JSON_ERR_UNTERMINATED_ARRAY, //array does not end
     KI_JSON_ERR_UNTERMINATED_OBJECT, //object does not end
 
-    KI_JSON_ERR_NAME_ALREADY_EXISTS, //name already exists in object
+    //TODO: KI_JSON_ERR_NAME_ALREADY_EXISTS, //name already exists in object
     KI_JSON_ERR_NO_NAME_VALUE_SEPARATOR, //separator : does not exist between name & value
-    KI_JSON_ERR_NO_VALUE, //name of name-value pair in object does have a value
 
     KI_JSON_ERR_UNKNOWN_TOKEN, //parser can't resolve type of token (number, string, object, array, null)
-    KI_JSON_ERR_UNKNOWN_ESCAPE_SEQUENCE,
+    KI_JSON_ERR_INVALID_ESCAPE_SEQUENCE,
 
-    KI_JSON_ERR_TRAILING_COMMA, //Trailing comma in array or object is not supported.
-
-    KI_JSON_ERR_COPY_FAIL, //Should be reported if occurs.
+    //TODO: KI_JSON_ERR_TRAILING_COMMA, //Trailing comma in array or object is not supported.
 };
 
 #pragma endregion
