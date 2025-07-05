@@ -82,11 +82,17 @@ enum ki_json_err_type
     KI_JSON_ERR_INVALID_ESCAPE_SEQUENCE,
 
     //TODO: KI_JSON_ERR_TRAILING_COMMA, //Trailing comma in array or object is not supported.
+    
+    KI_JSON_ERR_AMOUNT
 };
 
 #pragma endregion
 
 //TODO: add val, object and array is_type functions
+
+// Get error message for json error type.
+// Returns NULL for nonexistent error types.
+const char* ki_json_err_get_message(enum ki_json_err_type err);
 
 #pragma region Json object functions
 

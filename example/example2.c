@@ -98,7 +98,9 @@ int main(int argc, char** argv)
         }
         else 
         {
-            printf("err: %i\n", err.type);
+            printf("err type: %i\n", err.type);
+            printf("err msg: %s\n", ki_json_err_get_message(err.type));
+            printf("err pos: %zu\n", err.pos);
             printf("failed to parse value...\n");
         }
     }
