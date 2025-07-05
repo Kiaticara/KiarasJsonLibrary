@@ -600,10 +600,8 @@ static enum ki_json_err_type parse_array(struct json_reader* reader, struct ki_j
         printf("Parsing array value index: %zu\n", array->count);
         #endif
 
-        enum ki_json_err_type err_type = KI_JSON_ERR_NONE;
         struct ki_json_val* val = NULL;
-
-        err_type = parse_value(reader, &val);
+        enum ki_json_err_type err_type = parse_value(reader, &val);
 
         if (err_type != KI_JSON_ERR_NONE)
             return err_type;
