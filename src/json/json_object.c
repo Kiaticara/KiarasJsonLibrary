@@ -241,7 +241,11 @@ struct ki_json_val* ki_json_object_add_new_object(struct ki_json_object* object,
     if (val == NULL)
         return NULL;
 
-    ki_json_object_add(object, name, val);
+    if (ki_json_object_add(object, name, val) != KI_JSON_ERR_NONE)
+    {
+        ki_json_val_free(val);
+        val = NULL;
+    }
 
     return val;
 
@@ -256,7 +260,11 @@ struct ki_json_val* ki_json_object_add_new_array(struct ki_json_object* object, 
     if (val == NULL)
         return NULL;
 
-    ki_json_object_add(object, name, val);
+    if (ki_json_object_add(object, name, val) != KI_JSON_ERR_NONE)
+    {
+        ki_json_val_free(val);
+        val = NULL;
+    }
 
     return val;
 }
@@ -271,7 +279,11 @@ struct ki_json_val* ki_json_object_add_new_string(struct ki_json_object* object,
     if (val == NULL)
         return NULL;
 
-    ki_json_object_add(object, name, val);
+    if (ki_json_object_add(object, name, val) != KI_JSON_ERR_NONE)
+    {
+        ki_json_val_free(val);
+        val = NULL;
+    }
 
     return val;
 }
@@ -286,7 +298,11 @@ struct ki_json_val* ki_json_object_add_new_number(struct ki_json_object* object,
     if (val == NULL)
         return NULL;
 
-    ki_json_object_add(object, name, val);
+    if (ki_json_object_add(object, name, val) != KI_JSON_ERR_NONE)
+    {
+        ki_json_val_free(val);
+        val = NULL;
+    }
 
     return val;
 }
@@ -301,7 +317,11 @@ struct ki_json_val* ki_json_object_add_new_bool(struct ki_json_object* object, c
     if (val == NULL)
         return NULL;
 
-    ki_json_object_add(object, name, val);
+    if (ki_json_object_add(object, name, val) != KI_JSON_ERR_NONE)
+    {
+        ki_json_val_free(val);
+        val = NULL;
+    }
 
     return val;
 }
@@ -316,7 +336,11 @@ struct ki_json_val* ki_json_object_add_new_null(struct ki_json_object* object, c
     if (val == NULL)
         return NULL;
 
-    ki_json_object_add(object, name, val);
+    if (ki_json_object_add(object, name, val) != KI_JSON_ERR_NONE)
+    {
+        ki_json_val_free(val);
+        val = NULL;
+    }
 
     return val;
 }
