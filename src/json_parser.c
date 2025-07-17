@@ -685,8 +685,14 @@ static enum ki_json_err_type parse_object(struct json_reader* reader, struct ki_
             return err_type;
         }
 
-        ki_json_object_add(object, name, val);
+        err_type = ki_json_object_add(object, name, val);
         free(name); //name is copied, so we no longer need the original
+
+        if (err_type != KI_JSON_ERR_NONE)
+        {
+            ki_json_val_free(val);
+            return err_type;
+        }
 
         reader_skip_whitespace(reader);
 

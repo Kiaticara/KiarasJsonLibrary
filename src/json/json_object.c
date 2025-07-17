@@ -201,16 +201,15 @@ static bool ki_json_object_expand(struct ki_json_object* object)
 // Adds json value to json object as given name.
 // NOTE 1: Ownership of value is given to json object, and will free it once done.
 // NOTE 2: Name is copied.
-// Returns true on success, false on fail.
-bool ki_json_object_add(struct ki_json_object* object, const char* name, struct ki_json_val* value)
+enum ki_json_err_type ki_json_object_add(struct ki_json_object* object, const char* name, struct ki_json_val* value)
 {
     //check if name already exists
     if (ki_json_object_get(object, name) != NULL)
-        return false;
+        return KI_JSON_ERR_NAME_ALREADY_EXISTS;
 
     //if need to expand, but failed to do so
     if (object->count == object->capacity && !ki_json_object_expand(object))
-        return false;
+        return KI_JSON_ERR_MEMORY;
 
     //copy name into our own allocated space so we can free it once we're done
     //FIXME: this has no limit on how much it can copy
@@ -219,7 +218,7 @@ bool ki_json_object_add(struct ki_json_object* object, const char* name, struct 
     char* copy = calloc(name_length + 1, sizeof(*copy));
 
     if (copy == NULL)
-        return false;
+        return KI_JSON_ERR_MEMORY;
 
     strncpy(copy, name, name_length);
 
@@ -229,7 +228,7 @@ bool ki_json_object_add(struct ki_json_object* object, const char* name, struct 
     object->values[object->count] = value; 
     object->count++;
 
-    return true;
+    return KI_JSON_ERR_NONE;
 }
 
 // Creates new json value for a json object and adds it to the json object.

@@ -75,7 +75,7 @@ enum ki_json_err_type
     KI_JSON_ERR_UNTERMINATED_ARRAY, //array does not end
     KI_JSON_ERR_UNTERMINATED_OBJECT, //object does not end
 
-    //TODO: KI_JSON_ERR_NAME_ALREADY_EXISTS, //name already exists in object
+    KI_JSON_ERR_NAME_ALREADY_EXISTS, //name already exists in object
     KI_JSON_ERR_NO_NAME_VALUE_SEPARATOR, //separator : does not exist between name & value
 
     KI_JSON_ERR_UNKNOWN_TOKEN, //parser can't resolve type of token (number, string, object, array, null)
@@ -120,11 +120,12 @@ double ki_json_object_get_number(struct ki_json_object* object, const char* name
 // NOTE: Returns false on fail.
 bool ki_json_object_get_bool(struct ki_json_object* object, const char* name);
 
+//TODO: out error for add/insert new types?
+
 // Adds json value to json object as given name.
 // NOTE 1: Ownership of value is given to json object, and will free it once done.
 // NOTE 2: Name is copied.
-// Returns true on success, false on fail.
-bool ki_json_object_add(struct ki_json_object* object, const char* name, struct ki_json_val* value);
+enum ki_json_err_type ki_json_object_add(struct ki_json_object* object, const char* name, struct ki_json_val* value);
 // Creates new json value for a json object and adds it to the json object.
 // NOTE: Name is copied.
 // Returns NULL on fail.
