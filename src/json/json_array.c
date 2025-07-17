@@ -288,28 +288,14 @@ bool ki_json_array_add(struct ki_json_array* array, struct ki_json_val* value)
 // Returns NULL on fail.
 struct ki_json_val* ki_json_array_add_new_object(struct ki_json_array* array, size_t capacity)
 {
-    struct ki_json_val* val = ki_json_val_create_object(capacity);
-
-    if (val == NULL)
-        return NULL;
-
-    ki_json_array_add(array, val);
-
-    return val;
+    return ki_json_array_insert_new_object(array, array->count, capacity);
 }
 
 // Creates new json value for a json array and adds it to the end of a json array.
 // Returns NULL on fail.
 struct ki_json_val* ki_json_array_add_new_array(struct ki_json_array* array, size_t capacity)
 {
-    struct ki_json_val* val = ki_json_val_create_array(capacity);
-
-    if (val == NULL)
-        return NULL;
-
-    ki_json_array_add(array, val);
-
-    return val;
+    return ki_json_array_insert_new_array(array, array->count, capacity);
 }
 
 // Creates new json value for a string and adds it to the end of a json array.
@@ -317,56 +303,28 @@ struct ki_json_val* ki_json_array_add_new_array(struct ki_json_array* array, siz
 // Returns NULL on fail.
 struct ki_json_val* ki_json_array_add_new_string(struct ki_json_array* array, const char* string)
 {
-    struct ki_json_val* val = ki_json_val_create_from_string(string);
-
-    if (val == NULL)
-        return NULL;
-
-    ki_json_array_add(array, val);
-
-    return val;
+    return ki_json_array_insert_new_string(array, array->count, string);
 }
 
 // Creates new json value for a number and adds it to the end of a json array.
 // Returns NULL on fail.
 struct ki_json_val* ki_json_array_add_new_number(struct ki_json_array* array, double number)
 {
-    struct ki_json_val* val = ki_json_val_create_from_number(number);
-
-    if (val == NULL)
-        return NULL;
-
-    ki_json_array_add(array, val);
-
-    return val;
+    return ki_json_array_insert_new_number(array, array->count, number);
 }
 
 // Creates new json value for a bool and adds it to the end of a json array.
 // Returns NULL on fail.
 struct ki_json_val* ki_json_array_add_new_bool(struct ki_json_array* array, bool boolean)
 {
-    struct ki_json_val* val = ki_json_val_create_from_bool(boolean);
-
-    if (val == NULL)
-        return NULL;
-
-    ki_json_array_add(array, val);
-
-    return val;
+    return ki_json_array_insert_new_bool(array, array->count, boolean);
 }
 
 // Creates new json value representing null and adds it to the end of a json array.
 // Returns NULL on fail.
 struct ki_json_val* ki_json_array_add_new_null(struct ki_json_array* array)
 {
-    struct ki_json_val* val = ki_json_val_create_null();
-
-    if (val == NULL)
-        return NULL;
-
-    ki_json_array_add(array, val);
-
-    return val;
+    return ki_json_array_insert_new_null(array, array->count);
 }
 
 #pragma endregion
