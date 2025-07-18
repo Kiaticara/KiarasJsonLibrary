@@ -580,8 +580,6 @@ static enum ki_json_err_type parse_array(struct json_reader* reader, struct ki_j
 {
     assert(reader && array);
 
-    //TODO: trailing comma error?
-
     char character = '\0';
 
     //invalid json array
@@ -642,8 +640,6 @@ static enum ki_json_err_type parse_array(struct json_reader* reader, struct ki_j
 static enum ki_json_err_type parse_object(struct json_reader* reader, struct ki_json_object* object)
 {
     assert(reader && object);
-
-    //TODO: trailing comma error?
 
     //invalid json object
     if (!reader_can_access(reader, 0) || reader_char_at(reader, 0) != '{')
