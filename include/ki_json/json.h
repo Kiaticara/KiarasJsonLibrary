@@ -81,7 +81,7 @@ enum ki_json_err_type
     KI_JSON_ERR_UNKNOWN_TOKEN, //parser can't resolve type of token (number, string, object, array, null)
     KI_JSON_ERR_INVALID_ESCAPE_SEQUENCE,
 
-    //TODO: KI_JSON_ERR_TRAILING_COMMA, //Trailing comma in array or object is not supported.
+    KI_JSON_ERR_TRAILING_COMMA, //Trailing comma in array or object is not supported.
     
     KI_JSON_ERR_AMOUNT
 };

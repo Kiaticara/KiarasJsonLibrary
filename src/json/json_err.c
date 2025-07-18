@@ -12,7 +12,8 @@ static const char* err_msgs[] = {
     [KI_JSON_ERR_NAME_ALREADY_EXISTS] = "Duplicate pair name inside object.",
     [KI_JSON_ERR_NO_NAME_VALUE_SEPARATOR] = "Expected ',' to separate name and value.",
     [KI_JSON_ERR_UNKNOWN_TOKEN] = "Unable to resolve json token.",
-    [KI_JSON_ERR_INVALID_ESCAPE_SEQUENCE] = "Invalid escape sequence."
+    [KI_JSON_ERR_INVALID_ESCAPE_SEQUENCE] = "Invalid escape sequence.",
+    [KI_JSON_ERR_TRAILING_COMMA] = "Trailing commas are not allowed."
 };
 
 // Get error message for json error type.

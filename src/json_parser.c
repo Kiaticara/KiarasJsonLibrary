@@ -645,6 +645,8 @@ static enum ki_json_err_type parse_object(struct json_reader* reader, struct ki_
 
     reader_skip_whitespace(reader);
 
+    bool pair_expected = false;
+
     while (reader_can_access(reader, 0) && reader_char_at(reader, 0) != '}')
     {
         enum ki_json_err_type err_type = KI_JSON_ERR_NONE;
@@ -696,14 +698,21 @@ static enum ki_json_err_type parse_object(struct json_reader* reader, struct ki_
 
         reader_skip_whitespace(reader);
 
-        //comma separates next value
-        if (!reader_can_access(reader, 0) || reader_char_at(reader, 0) != ',')
-            break;
-
-        reader->offset++; //skip comma
-
-        reader_skip_whitespace(reader);
+        //comma separates next pair
+        if (reader_char_at(reader, 0) == ',')
+        {
+            reader->offset++; //skip comma
+            reader_skip_whitespace(reader);
+            pair_expected = true;
+        }
+        else
+        {
+            pair_expected = false;
+        }
     }
+
+    if (pair_expected)
+        return KI_JSON_ERR_TRAILING_COMMA;
 
     //object never ended
     if (!reader_can_access(reader, 0) || reader_char_at(reader, 0) != '}')
