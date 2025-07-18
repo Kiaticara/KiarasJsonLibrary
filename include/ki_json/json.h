@@ -76,7 +76,7 @@ enum ki_json_err_type
     KI_JSON_ERR_UNTERMINATED_OBJECT, //object does not end
 
     KI_JSON_ERR_NAME_ALREADY_EXISTS, //name already exists in object
-    KI_JSON_ERR_NO_NAME_VALUE_SEPARATOR, //separator : does not exist between name & value
+    KI_JSON_ERR_EXPECTED_NAME_VALUE_SEPARATOR, //expected separator colon between name & value
 
     KI_JSON_ERR_UNKNOWN_TOKEN, //parser can't resolve type of token (number, string, object, array, null)
     KI_JSON_ERR_INVALID_ESCAPE_SEQUENCE,

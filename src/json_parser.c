@@ -675,7 +675,7 @@ static enum ki_json_err_type parse_object(struct json_reader* reader, struct ki_
         if (!reader_can_access(reader, 0) || reader_char_at(reader, 0) != ':')
         {
             free(name);
-            return KI_JSON_ERR_NO_NAME_VALUE_SEPARATOR;
+            return KI_JSON_ERR_EXPECTED_NAME_VALUE_SEPARATOR;
         }
 
         #if KI_JSON_PARSER_VERBOSE
