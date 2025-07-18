@@ -6,6 +6,7 @@ static const char* err_msgs[] = {
     [KI_JSON_ERR_TOO_SHORT] = "Json string was expected to be longer.",
     [KI_JSON_ERR_INVALID_ARGS] = "User gave invalid arguments.",
     [KI_JSON_ERR_MEMORY] = "A memory error occurred.",
+    [KI_JSON_ERR_OUT_OF_BOUNDS] = "Index is out of bounds.",
     [KI_JSON_ERR_UNTERMINATED_STRING] = "Expected ending '\"' to terminate string.",
     [KI_JSON_ERR_UNTERMINATED_ARRAY] = "Expected ending ']' to terminate array.",
     [KI_JSON_ERR_UNTERMINATED_OBJECT] = "Expected ending '}' to terminate object.",

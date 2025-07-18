@@ -607,8 +607,10 @@ static enum ki_json_err_type parse_array(struct json_reader* reader, struct ki_j
         if (err_type != KI_JSON_ERR_NONE)
             return err_type;
 
-        if (!ki_json_array_add(array, val))
-            return KI_JSON_ERR_MEMORY;
+        err_type = ki_json_array_add(array, val);
+
+        if (err_type != KI_JSON_ERR_NONE)
+            return err_type;
 
         reader_skip_whitespace(reader);
 

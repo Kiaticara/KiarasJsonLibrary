@@ -137,17 +137,16 @@ static bool ki_json_array_expand(struct ki_json_array* array)
 
 // Adds json value to json array at given index.
 // NOTE: Ownership of value is given to json array, and will free it once done.
-// Returns true on success, false on fail.
-bool ki_json_array_insert(struct ki_json_array* array, struct ki_json_val* value, size_t index)
+enum ki_json_err_type ki_json_array_insert(struct ki_json_array* array, struct ki_json_val* value, size_t index)
 {
-    //is index out-of-bounds? then return false
+    //is index out-of-bounds?
     //allow inserting at array->count => at end of json array
     if (index < 0 || index > array->count)
-        return false;
+        return KI_JSON_ERR_OUT_OF_BOUNDS;
 
     //if need to expand json array, but failed to do so, return false
     if (array->count == array->capacity && !ki_json_array_expand(array))
-        return false;
+        return KI_JSON_ERR_MEMORY;
 
     //shift all items starting at given index to the right by one space
     if (array->count != 0)
@@ -159,7 +158,7 @@ bool ki_json_array_insert(struct ki_json_array* array, struct ki_json_val* value
     array->values[index] = value;
     array->count++;
 
-    return true;
+    return KI_JSON_ERR_NONE;
 }
 
 // Creates new json value for a json object and adds it to the json array at given index.
@@ -171,7 +170,7 @@ struct ki_json_val* ki_json_array_insert_new_object(struct ki_json_array* array,
     if (val == NULL)
         return NULL;
 
-    if (!ki_json_array_insert(array, val, index))
+    if (ki_json_array_insert(array, val, index) != KI_JSON_ERR_NONE)
     {
         ki_json_val_free(val);
         val = NULL;
@@ -189,7 +188,7 @@ struct ki_json_val* ki_json_array_insert_new_array(struct ki_json_array* array, 
     if (val == NULL)
         return NULL;
 
-    if (!ki_json_array_insert(array, val, index))
+    if (ki_json_array_insert(array, val, index) != KI_JSON_ERR_NONE)
     {
         ki_json_val_free(val);
         val = NULL;
@@ -208,7 +207,7 @@ struct ki_json_val* ki_json_array_insert_new_string(struct ki_json_array* array,
     if (val == NULL)
         return NULL;
 
-    if (!ki_json_array_insert(array, val, index))
+    if (ki_json_array_insert(array, val, index) != KI_JSON_ERR_NONE)
     {
         ki_json_val_free(val);
         val = NULL;
@@ -226,7 +225,7 @@ struct ki_json_val* ki_json_array_insert_new_number(struct ki_json_array* array,
     if (val == NULL)
         return NULL;
 
-    if (!ki_json_array_insert(array, val, index))
+    if (ki_json_array_insert(array, val, index) != KI_JSON_ERR_NONE)
     {
         ki_json_val_free(val);
         val = NULL;
@@ -244,7 +243,7 @@ struct ki_json_val* ki_json_array_insert_new_bool(struct ki_json_array* array, s
     if (val == NULL)
         return NULL;
 
-    if (!ki_json_array_insert(array, val, index))
+    if (ki_json_array_insert(array, val, index) != KI_JSON_ERR_NONE)
     {
         ki_json_val_free(val);
         val = NULL;
@@ -262,7 +261,7 @@ struct ki_json_val* ki_json_array_insert_new_null(struct ki_json_array* array, s
     if (val == NULL)
         return NULL;
 
-    if (!ki_json_array_insert(array, val, index))
+    if (ki_json_array_insert(array, val, index) != KI_JSON_ERR_NONE)
     {
         ki_json_val_free(val);
         val = NULL;
@@ -278,8 +277,7 @@ struct ki_json_val* ki_json_array_insert_new_null(struct ki_json_array* array, s
 
 // Adds json value to the end of a json array.
 // NOTE: Ownership of value is given to json array, and will free it once done.
-// Returns true on success, false on fail.
-bool ki_json_array_add(struct ki_json_array* array, struct ki_json_val* value)
+enum ki_json_err_type ki_json_array_add(struct ki_json_array* array, struct ki_json_val* value)
 {
     return ki_json_array_insert(array, value, array->count);
 }

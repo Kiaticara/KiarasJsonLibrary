@@ -71,6 +71,8 @@ enum ki_json_err_type
 
     KI_JSON_ERR_MEMORY, //memory error, for ex.: allocation fail
 
+    KI_JSON_ERR_OUT_OF_BOUNDS, //index out of bounds
+
     KI_JSON_ERR_UNTERMINATED_STRING, //string value does not end
     KI_JSON_ERR_UNTERMINATED_ARRAY, //array does not end
     KI_JSON_ERR_UNTERMINATED_OBJECT, //object does not end
@@ -196,8 +198,7 @@ bool ki_json_array_bool_at(struct ki_json_array* array, size_t index);
 
 // Adds json value to json array at given index.
 // NOTE: Ownership of value is given to json array, and will free it once done.
-// Returns true on success, false on fail.
-bool ki_json_array_insert(struct ki_json_array* array, struct ki_json_val* value, size_t index);
+enum ki_json_err_type ki_json_array_insert(struct ki_json_array* array, struct ki_json_val* value, size_t index);
 // Creates new json value for a json object and adds it to the json array at given index.
 // Returns NULL on fail.
 struct ki_json_val* ki_json_array_insert_new_object(struct ki_json_array* array, size_t index, size_t capacity);
@@ -220,8 +221,7 @@ struct ki_json_val* ki_json_array_insert_new_null(struct ki_json_array* array, s
 
 // Adds json value to the end of a json array.
 // NOTE: Ownership of value is given to json array, and will free it once done.
-// Returns true on success, false on fail.
-bool ki_json_array_add(struct ki_json_array* array, struct ki_json_val* value);
+enum ki_json_err_type ki_json_array_add(struct ki_json_array* array, struct ki_json_val* value);
 // Creates new json value for a json object and adds it to the end of a json array.
 // Returns NULL on fail.
 struct ki_json_val* ki_json_array_add_new_object(struct ki_json_array* array, size_t capacity);
