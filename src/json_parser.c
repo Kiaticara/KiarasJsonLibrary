@@ -593,6 +593,7 @@ static enum ki_json_err_type parse_array(struct json_reader* reader, struct ki_j
     reader_skip_whitespace(reader);
 
     bool pair_expected = false;
+    size_t pos_comma = 0;
 
     while (reader_peek(reader, &character) && character != ']')
     {
@@ -614,6 +615,7 @@ static enum ki_json_err_type parse_array(struct json_reader* reader, struct ki_j
         //comma separates next pair
         if (reader_char_at(reader, 0) == ',')
         {
+            pos_comma = reader->offset;
             reader->offset++; //skip comma
             reader_skip_whitespace(reader);
             pair_expected = true;
@@ -625,7 +627,10 @@ static enum ki_json_err_type parse_array(struct json_reader* reader, struct ki_j
     }
 
     if (pair_expected)
+    {
+        reader->offset = pos_comma; //go back to comma
         return KI_JSON_ERR_TRAILING_COMMA;
+    }
 
     //array never ended
     if (!reader_peek(reader, &character) || character != ']')
@@ -651,6 +656,7 @@ static enum ki_json_err_type parse_object(struct json_reader* reader, struct ki_
     reader_skip_whitespace(reader);
 
     bool pair_expected = false;
+    size_t pos_comma = 0;
 
     while (reader_can_access(reader, 0) && reader_char_at(reader, 0) != '}')
     {
@@ -706,6 +712,7 @@ static enum ki_json_err_type parse_object(struct json_reader* reader, struct ki_
         //comma separates next pair
         if (reader_char_at(reader, 0) == ',')
         {
+            pos_comma = reader->offset;
             reader->offset++; //skip comma
             reader_skip_whitespace(reader);
             pair_expected = true;
@@ -717,7 +724,10 @@ static enum ki_json_err_type parse_object(struct json_reader* reader, struct ki_
     }
 
     if (pair_expected)
+    {
+        reader->offset = pos_comma; //go back to comma
         return KI_JSON_ERR_TRAILING_COMMA;
+    }
 
     //object never ended
     if (!reader_can_access(reader, 0) || reader_char_at(reader, 0) != '}')
