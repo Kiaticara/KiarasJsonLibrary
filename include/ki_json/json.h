@@ -75,6 +75,7 @@ enum ki_json_err_type
     KI_JSON_ERR_UNTERMINATED_ARRAY, //array does not end
     KI_JSON_ERR_UNTERMINATED_OBJECT, //object does not end
 
+    KI_JSON_ERR_EXPECTED_NAME, //expected a string as name for pair
     KI_JSON_ERR_NAME_ALREADY_EXISTS, //name already exists in object
     KI_JSON_ERR_EXPECTED_NAME_VALUE_SEPARATOR, //expected separator colon between name & value
 

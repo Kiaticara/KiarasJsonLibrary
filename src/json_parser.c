@@ -666,7 +666,9 @@ static enum ki_json_err_type parse_object(struct json_reader* reader, struct ki_
 
         err_type = parse_string(reader, &name);
 
-        if (err_type != KI_JSON_ERR_NONE)
+        if (err_type == KI_JSON_ERR_UNKNOWN_TOKEN)
+            return KI_JSON_ERR_EXPECTED_NAME;
+        else if (err_type != KI_JSON_ERR_NONE)
             return err_type;
 
         reader_skip_whitespace(reader);

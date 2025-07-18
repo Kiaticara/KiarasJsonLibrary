@@ -9,6 +9,7 @@ static const char* err_msgs[] = {
     [KI_JSON_ERR_UNTERMINATED_STRING] = "Expected ending '\"' to terminate string.",
     [KI_JSON_ERR_UNTERMINATED_ARRAY] = "Expected ending ']' to terminate array.",
     [KI_JSON_ERR_UNTERMINATED_OBJECT] = "Expected ending '}' to terminate object.",
+    [KI_JSON_ERR_EXPECTED_NAME] = "Expected string as name for name-value pair.",
     [KI_JSON_ERR_NAME_ALREADY_EXISTS] = "Duplicate pair name inside object.",
     [KI_JSON_ERR_EXPECTED_NAME_VALUE_SEPARATOR] = "Expected ':' to separate name and value.",
     [KI_JSON_ERR_UNKNOWN_TOKEN] = "Unable to resolve json token.",
