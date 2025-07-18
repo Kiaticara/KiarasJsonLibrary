@@ -829,16 +829,16 @@ static enum ki_json_err_type parse_value(struct json_reader* reader, struct ki_j
 }
 
 // Parse null-terminated string to a json tree.
-// Val returned must be freed when done.
-// Returns NULL on fail.
+// Val returned must be freed using ki_json_val_free() when done.
+// Returns NULL on fail and outs error to err.
 struct ki_json_val* ki_json_parse_string(const char* string, struct ki_json_parser_err* err)
 {
     return ki_json_nparse_string(string, strlen(string), err);
 }
 
 // Parse no more than n characters of string to a json tree.
-// Val returned must be freed when done.
-// Returns NULL on fail.
+// Val returned must be freed using ki_json_val_free() when done.
+// Returns NULL on fail and outs error to err.
 struct ki_json_val* ki_json_nparse_string(const char* string, size_t n, struct ki_json_parser_err* err)
 {
     if (err != NULL)
