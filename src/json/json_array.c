@@ -144,7 +144,7 @@ enum ki_json_err_type ki_json_array_insert(struct ki_json_array* array, struct k
     if (index < 0 || index > array->count)
         return KI_JSON_ERR_OUT_OF_BOUNDS;
 
-    //if need to expand json array, but failed to do so, return false
+    //if need to expand json array, but failed to do so
     if (array->count == array->capacity && !ki_json_array_expand(array))
         return KI_JSON_ERR_MEMORY;
 
