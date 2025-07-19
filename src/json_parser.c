@@ -360,44 +360,6 @@ static int escape_sequence_to_utf8(const char* string, const char* string_end, u
     }
 }
 
-// Prints string inside src until end into dest, while converting escape sequences.
-static enum ki_json_err_type print_escaped_string_as_unescaped(struct print_buffer* dest, const char* src, const char* end)
-{
-    if (src == NULL || end == NULL || dest == NULL)
-        return KI_JSON_ERR_INTERNAL;
-
-    //NOTE: only escaped utf8 characters are added in a single iteration, others are done byte per byte
-    while (src < end)
-    {
-        size_t sequence_length = 0;
-
-        //start of an escape sequence
-        if (src[0] == '\\')
-        {
-            unsigned char bytes[CHARACTER_MAX_BUFFER_SIZE]; //character bytes, max. 4 bytes (utf8)
-            size_t num_bytes = escape_sequence_to_utf8(src, end, bytes, CHARACTER_MAX_BUFFER_SIZE, &sequence_length);
-
-            //invalid escape sequence or failed to parse it
-            if (num_bytes == 0)
-                return KI_JSON_ERR_INVALID_ESCAPE_SEQUENCE;
-
-            if (!print_buffer_append_mem(dest, bytes, num_bytes))
-                return KI_JSON_ERR_MEMORY;
-        }
-        else 
-        {
-            if (!print_buffer_append_char(dest, src[0]))
-                return KI_JSON_ERR_MEMORY;
-
-            sequence_length = 1;
-        }
-
-        src += sequence_length;
-    }
-
-    return KI_JSON_ERR_NONE;
-}
-
 #pragma endregion
 
 #pragma region Parsing
@@ -447,21 +409,55 @@ static enum ki_json_err_type parse_string(struct json_reader* reader, char** str
 {
     assert(reader && string);
 
-    //get end index of string, check whether we even have a string val
-    size_t string_end = 0;
+    //get length and check whether we even have a string val
+    size_t length = 0;
 
-    enum ki_json_err_type err_type = has_next_string_val(reader, &string_end);
+    enum ki_json_err_type err_type = has_next_string_val(reader, &length);
 
     if (err_type != KI_JSON_ERR_NONE)
         return err_type;
 
     //convert string value
+
+    //TODO: don't use print buffer, resulting string will always be smaller or the same length as read string
     
     print_buffer_reset(&reader->string_buffer);
     
-    err_type = print_escaped_string_as_unescaped(&reader->string_buffer, reader_buffer_at(reader, 1), reader_buffer_at(reader, string_end - 1));
-    if (err_type != KI_JSON_ERR_NONE)
-        return err_type;
+    reader->offset++; //skip first "
+
+    const char* end = reader_buffer_at(reader, length - 1);
+    char character = '\0';
+
+    //NOTE: only escaped utf8 characters are added in a single iteration, others are done byte per byte
+    while (reader_peek(reader, &character) && character != '\"')
+    {
+        size_t sequence_length = 0;
+
+        //start of an escape sequence
+        if (character == '\\')
+        {
+            unsigned char bytes[CHARACTER_MAX_BUFFER_SIZE]; //character bytes, max. 4 bytes (utf8)
+            size_t num_bytes = escape_sequence_to_utf8(reader_buffer_at(reader, 0), end, bytes, CHARACTER_MAX_BUFFER_SIZE, &sequence_length);
+
+            //invalid escape sequence or failed to parse it
+            if (num_bytes == 0)
+                return KI_JSON_ERR_INVALID_ESCAPE_SEQUENCE;
+
+            if (!print_buffer_append_mem(&reader->string_buffer, bytes, num_bytes))
+                return KI_JSON_ERR_MEMORY;
+        }
+        else 
+        {
+            if (!print_buffer_append_char(&reader->string_buffer, character))
+                return KI_JSON_ERR_MEMORY;
+
+            sequence_length = 1;
+        }
+
+        reader->offset += sequence_length;
+    }
+
+    reader->offset++; //skip last "
 
     char* new_string = calloc(print_buffer_length(&reader->string_buffer) + 1, sizeof(*new_string));
 
@@ -474,9 +470,6 @@ static enum ki_json_err_type parse_string(struct json_reader* reader, char** str
         free(new_string);
         return KI_JSON_ERR_INTERNAL;
     }
-
-    //move to end of string val
-    reader->offset += string_end;
 
     //out
     *string = new_string;
