@@ -61,9 +61,41 @@ struct ki_json_val
     } value;
 };
 
+enum ki_json_err_type
+{
+    KI_JSON_ERR_NONE, //no error.
+    KI_JSON_ERR_INTERNAL, //internal error
+    KI_JSON_ERR_TOO_SHORT, //json string is too short
+
+    KI_JSON_ERR_INVALID_ARGS, //invalid arguments were given
+
+    KI_JSON_ERR_MEMORY, //memory error, for ex.: allocation fail
+
+    KI_JSON_ERR_OUT_OF_BOUNDS, //index out of bounds
+
+    KI_JSON_ERR_UNTERMINATED_STRING, //string value does not end
+    KI_JSON_ERR_UNTERMINATED_ARRAY, //array does not end
+    KI_JSON_ERR_UNTERMINATED_OBJECT, //object does not end
+
+    KI_JSON_ERR_EXPECTED_NAME, //expected a string as name for pair
+    KI_JSON_ERR_NAME_ALREADY_EXISTS, //name already exists in object
+    KI_JSON_ERR_EXPECTED_NAME_VALUE_SEPARATOR, //expected separator colon between name & value
+
+    KI_JSON_ERR_UNKNOWN_TOKEN, //parser can't resolve type of token (number, string, object, array, null)
+    KI_JSON_ERR_INVALID_ESCAPE_SEQUENCE,
+
+    KI_JSON_ERR_TRAILING_COMMA, //Trailing comma in array or object is not supported.
+    
+    KI_JSON_ERR_AMOUNT
+};
+
 #pragma endregion
 
 //TODO: add val, object and array is_type functions
+
+// Get error message for json error type.
+// Returns NULL for nonexistent error types.
+const char* ki_json_err_get_message(enum ki_json_err_type err);
 
 #pragma region Json object functions
 
@@ -91,11 +123,12 @@ double ki_json_object_get_number(struct ki_json_object* object, const char* name
 // NOTE: Returns false on fail.
 bool ki_json_object_get_bool(struct ki_json_object* object, const char* name);
 
+//TODO: out error for add/insert new types?
+
 // Adds json value to json object as given name.
 // NOTE 1: Ownership of value is given to json object, and will free it once done.
 // NOTE 2: Name is copied.
-// Returns true on success, false on fail.
-bool ki_json_object_add(struct ki_json_object* object, const char* name, struct ki_json_val* value);
+enum ki_json_err_type ki_json_object_add(struct ki_json_object* object, const char* name, struct ki_json_val* value);
 // Creates new json value for a json object and adds it to the json object.
 // NOTE: Name is copied.
 // Returns NULL on fail.
@@ -165,8 +198,7 @@ bool ki_json_array_bool_at(struct ki_json_array* array, size_t index);
 
 // Adds json value to json array at given index.
 // NOTE: Ownership of value is given to json array, and will free it once done.
-// Returns true on success, false on fail.
-bool ki_json_array_insert(struct ki_json_array* array, struct ki_json_val* value, size_t index);
+enum ki_json_err_type ki_json_array_insert(struct ki_json_array* array, struct ki_json_val* value, size_t index);
 // Creates new json value for a json object and adds it to the json array at given index.
 // Returns NULL on fail.
 struct ki_json_val* ki_json_array_insert_new_object(struct ki_json_array* array, size_t index, size_t capacity);
@@ -189,8 +221,7 @@ struct ki_json_val* ki_json_array_insert_new_null(struct ki_json_array* array, s
 
 // Adds json value to the end of a json array.
 // NOTE: Ownership of value is given to json array, and will free it once done.
-// Returns true on success, false on fail.
-bool ki_json_array_add(struct ki_json_array* array, struct ki_json_val* value);
+enum ki_json_err_type ki_json_array_add(struct ki_json_array* array, struct ki_json_val* value);
 // Creates new json value for a json object and adds it to the end of a json array.
 // Returns NULL on fail.
 struct ki_json_val* ki_json_array_add_new_object(struct ki_json_array* array, size_t capacity);

@@ -80,7 +80,8 @@ int main(int argc, char** argv)
 
         printf("parsing %s\n", path);
 
-        struct ki_json_val* val = ki_json_nparse_string(buffer, amount);
+        struct ki_json_parser_err err = {0};
+        struct ki_json_val* val = ki_json_nparse_string(buffer, amount, &err);
         free(buffer);
 
         if (val != NULL)
@@ -97,6 +98,9 @@ int main(int argc, char** argv)
         }
         else 
         {
+            printf("err type: %i\n", err.type);
+            printf("err msg: %s\n", ki_json_err_get_message(err.type));
+            printf("err pos: %zu\n", err.pos);
             printf("failed to parse value...\n");
         }
     }
