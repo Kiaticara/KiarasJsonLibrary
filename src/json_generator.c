@@ -20,12 +20,12 @@ struct json_generator
 
 // Prints json-formatted control character into print buffer, through an escape sequence.
 // Returns true on success, and false on fail.
-static bool print_control_char(struct print_buffer* buffer, char control_char)
+static bool print_escape_sequence(struct print_buffer* buffer, unsigned char character)
 {
     if (buffer == NULL)
         return false;
 
-    switch(control_char)
+    switch(character)
     {
         case '\"': //double quotation marks
             return print_buffer_append_string(buffer, "\\\"");
@@ -44,7 +44,7 @@ static bool print_control_char(struct print_buffer* buffer, char control_char)
         default:
         {
             char escaped[7]; // \uXXXX\0
-            snprintf(escaped, sizeof(escaped), "\\u%04.4X", (unsigned char)control_char);
+            snprintf(escaped, sizeof(escaped), "\\u%04.4X", character);
             return print_buffer_append_string(buffer, escaped);
         }
     }
@@ -67,7 +67,7 @@ static bool print_string(struct print_buffer* buffer, const char* string)
     {
         if (string[pos] >= 0x0000 && string[pos] <= 0x001F)
         {
-            if (!print_control_char(buffer, string[pos]))
+            if (!print_escape_sequence(buffer, (unsigned char)string[pos]))
                 return false;
         }
         else if (!print_buffer_append_char(buffer, string[pos]))
