@@ -22,7 +22,7 @@ static const char* err_msgs[] = {
 // Returns NULL for nonexistent error types.
 const char* ki_json_err_get_message(enum ki_json_err_type err)
 {
-    if (err >= 0 && err <= KI_JSON_ERR_AMOUNT)
+    if (err >= 0 && err < KI_JSON_ERR_AMOUNT)
         return err_msgs[err];
     else
         return NULL;
