@@ -65,7 +65,7 @@ static bool print_string(struct print_buffer* buffer, const char* string)
     
     while (string[pos] != '\0')
     {
-        if (string[pos] >= 0x0000 && string[pos] <= 0x001F)
+        if ((string[pos] >= 0x0000 && string[pos] <= 0x001F) || string[pos] == '\"' || string[pos] == '\\')
         {
             if (!print_escape_sequence(buffer, (unsigned char)string[pos]))
                 return false;
