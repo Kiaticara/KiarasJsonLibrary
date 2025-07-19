@@ -28,7 +28,7 @@ static bool print_control_char(struct print_buffer* buffer, char control_char)
     switch(control_char)
     {
         case '\"': //double quotation marks
-            return print_buffer_append_string(buffer, "\\n");
+            return print_buffer_append_string(buffer, "\\\"");
         case '\\': //reverse solidus
             return print_buffer_append_string(buffer, "\\\\");
         case '\b': //backspace
