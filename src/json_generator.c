@@ -18,7 +18,7 @@ struct json_generator
 
 #pragma region Printing
 
-// Prints json-formatted control character into print buffer, through an escape sequence.
+// Prints json-formatted character into print buffer, through an escape sequence.
 // Returns true on success, and false on fail.
 static bool print_escape_sequence(struct print_buffer* buffer, unsigned char character)
 {
