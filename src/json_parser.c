@@ -847,7 +847,9 @@ struct ki_json_val* ki_json_nparse_string(const char* string, size_t n, struct k
 
     if (string == NULL)
     {
-        err->type = KI_JSON_ERR_INVALID_ARGS;
+        if (err != NULL)
+            err->type = KI_JSON_ERR_INVALID_ARGS;
+        
         return NULL;
     }
 
@@ -855,7 +857,9 @@ struct ki_json_val* ki_json_nparse_string(const char* string, size_t n, struct k
 
     if (!reader_init(&reader, string, n))
     {
-        err->type = KI_JSON_ERR_MEMORY;
+        if (err != NULL)
+            err->type = KI_JSON_ERR_MEMORY;
+
         return NULL;
     }
 
