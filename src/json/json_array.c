@@ -39,7 +39,7 @@ void ki_json_array_fini(struct ki_json_array* array)
     array->capacity = 0;
 }
 
-#pragma region Getting values
+/* Getting values */
 
 struct ki_json_val* ki_json_array_at(struct ki_json_array* array, size_t index)
 {
@@ -111,9 +111,7 @@ bool ki_json_array_bool_at(struct ki_json_array* array, size_t index)
     return val->value.boolean;
 }
 
-#pragma endregion
-
-#pragma region Inserting values
+/* Inserting values */
 
 // Doubles capacity of json array.
 static bool ki_json_array_expand(struct ki_json_array* array)
@@ -270,10 +268,7 @@ struct ki_json_val* ki_json_array_insert_new_null(struct ki_json_array* array, s
     return val;
 }
 
-
-#pragma endregion
-
-#pragma region Adding values
+/* Adding values */
 
 // Adds json value to the end of a json array.
 // NOTE: Ownership of value is given to json array, and will free it once done.
@@ -325,9 +320,7 @@ struct ki_json_val* ki_json_array_add_new_null(struct ki_json_array* array)
     return ki_json_array_insert_new_null(array, array->count);
 }
 
-#pragma endregion
-
-#pragma region Setting values
+/* Setting values */
 
 // NOTE 1: Value must be of type KI_JSON_VAL_STRING.
 // NOTE 2: String is copied.
@@ -370,9 +363,7 @@ bool ki_json_array_set_bool(struct ki_json_array* array, size_t index, bool bool
     return true;
 }
 
-#pragma endregion
-
-#pragma region Removing values
+/* Removing values */
 
 // Returns true on success, false on fail.
 bool ki_json_array_remove_at(struct ki_json_array* array, size_t index)
@@ -411,4 +402,3 @@ bool ki_json_array_remove(struct ki_json_array* array, struct ki_json_val* value
     return false;
 }
 
-#pragma endregion

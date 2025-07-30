@@ -16,7 +16,7 @@ struct json_generator
     int depth;
 };
 
-#pragma region Printing
+/* Printing */
 
 // Prints json-formatted character into print buffer, through an escape sequence.
 // Returns true on success, and false on fail.
@@ -289,3 +289,4 @@ char* ki_json_gen_string(struct ki_json_val* val)
 
     return string;
 }
+

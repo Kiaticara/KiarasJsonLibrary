@@ -72,7 +72,7 @@ void ki_json_object_fini(struct ki_json_object* object)
     }
 }
 
-#pragma region Getting values
+/* Getting values */
 
 // Returns val with given name in json object.
 // Returns NULL on fail.
@@ -159,9 +159,7 @@ bool ki_json_object_get_bool(struct ki_json_object* object, const char* name)
     return val->value.boolean;
 }
 
-#pragma endregion
-
-#pragma region Adding values
+/* Adding values */
 
 // Doubles capacity of json object.
 static bool ki_json_object_expand(struct ki_json_object* object)
@@ -345,9 +343,7 @@ struct ki_json_val* ki_json_object_add_new_null(struct ki_json_object* object, c
     return val;
 }
 
-#pragma endregion
-
-#pragma region Setting values
+/* Setting values */
 
 // NOTE 1: Value must be of type KI_JSON_VAL_STRING.
 // NOTE 2: String is copied.
@@ -390,9 +386,7 @@ bool ki_json_object_set_bool(struct ki_json_object* object, const char* name, bo
     return true;
 }
 
-#pragma endregion
-
-#pragma region Removing values
+/* Removing values */
 
 bool ki_json_object_remove(struct ki_json_object* object, const char* name)
 {
@@ -431,4 +425,3 @@ bool ki_json_object_remove(struct ki_json_object* object, const char* name)
     return false;
 }
 
-#pragma endregion

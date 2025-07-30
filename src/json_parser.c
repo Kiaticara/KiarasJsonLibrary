@@ -37,7 +37,7 @@ static bool char_is_whitespace(char character)
     return (character == ' ') || (character == '\t') || (character == '\n') || (character == '\r');
 }
 
-#pragma region Reader
+/* Reader */
 
 static bool reader_init(struct json_reader* reader, const char* json, size_t length)
 {
@@ -117,9 +117,7 @@ static void reader_skip_whitespace(struct json_reader* reader)
         reader->offset++;
 }
 
-#pragma endregion
-
-#pragma region Conversions
+/* Conversions */
 
 // Converts a hexidecimal digit to int, -1 if not a hexidecimal digit.
 static int hex_digit_to_int(char hex_digit)
@@ -360,9 +358,7 @@ static int escape_sequence_to_utf8(const char* string, const char* string_end, u
     }
 }
 
-#pragma endregion
-
-#pragma region Parsing
+/* Parsing */
 
 // Checks whether reader can read in a string value.
 static enum ki_json_err_type has_next_string_val(struct json_reader* reader, size_t* length)
@@ -891,4 +887,3 @@ struct ki_json_val* ki_json_nparse_string(const char* string, size_t n, struct k
     }
 }
 
-#pragma endregion

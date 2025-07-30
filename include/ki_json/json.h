@@ -6,7 +6,7 @@
 
 // Contains what is needed to represent json trees, along with the functions neccessary for creating & interacting with them
 
-#pragma region Structs & enums
+/* Structs & enums */
 
 enum KI_JSON_VAL_TYPE
 {
@@ -89,7 +89,7 @@ enum ki_json_err_type
     KI_JSON_ERR_AMOUNT
 };
 
-#pragma endregion
+/* Error handling */
 
 //TODO: add val, object and array is_type functions
 
@@ -97,7 +97,7 @@ enum ki_json_err_type
 // Returns NULL for nonexistent error types.
 const char* ki_json_err_get_message(enum ki_json_err_type err);
 
-#pragma region Json object functions
+/* Json object functions */
 
 bool ki_json_object_init(struct ki_json_object* object, size_t capacity);
 void ki_json_object_fini(struct ki_json_object* object);
@@ -168,9 +168,7 @@ bool ki_json_object_set_bool(struct ki_json_object* object, const char* name, bo
 // Returns true on success, false on fail.
 bool ki_json_object_remove(struct ki_json_object* object, const char* name);
 
-#pragma endregion
-
-#pragma region Json array functions
+/* Json array functions */
 
 bool ki_json_array_init(struct ki_json_array* array, size_t capacity);
 void ki_json_array_fini(struct ki_json_array* array);
@@ -259,9 +257,7 @@ bool ki_json_array_remove_at(struct ki_json_array* array, size_t index);
 // Returns true on success, false on fail.
 bool ki_json_array_remove(struct ki_json_array* array, struct ki_json_val* value);
 
-#pragma endregion
-
-#pragma region Json val functions
+/* Json val functions */
 
 // Creates a json value for a json object with given starting capacity.
 // Returns NULL on fail.
@@ -290,6 +286,5 @@ bool ki_json_val_set_string(struct ki_json_val* val, const char* string);
 
 void ki_json_val_free(struct ki_json_val* val);
 
-#pragma endregion
-
 #endif //KI_JSON_JSON_H
+

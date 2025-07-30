@@ -6,7 +6,7 @@
 #include <string.h>
 #include <assert.h>
 
-#pragma region Creating
+/* Creating */
 
 // Creates a json value for a json object with given starting capacity.
 // Returns NULL on fail.
@@ -100,9 +100,7 @@ struct ki_json_val* ki_json_val_create_null(void)
     return val;
 }
 
-#pragma endregion
-
-#pragma region Special setters
+/* Special setters */
 
 // NOTE 1: ki_json_value must be of type KI_JSON_VAL_STRING.
 // NOTE 2: String is copied.
@@ -132,9 +130,7 @@ bool ki_json_val_set_string(struct ki_json_val* val, const char* string)
     return true;
 }
 
-#pragma endregion
-
-#pragma region Freeing
+/* Freeing */
 
 void ki_json_val_free(struct ki_json_val* val)
 {
@@ -163,4 +159,3 @@ void ki_json_val_free(struct ki_json_val* val)
     free(val);
 }
 
-#pragma endregion
