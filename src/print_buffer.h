@@ -1,4 +1,5 @@
-#pragma once
+#ifndef KI_JSON_PRINT_BUFFER_H
+#define KI_JSON_PRINT_BUFFER_H
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -43,3 +44,6 @@ bool print_buffer_append_string(struct print_buffer* buffer, const char* string)
 // Truncates if necessary.
 // Returns whether src was completely copied over to dest.
 bool print_buffer_copy_to_buffer(struct print_buffer* src, char* dest, size_t size);
+
+#endif //KI_JSON_PRINT_BUFFER_H
+
