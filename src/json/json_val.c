@@ -100,6 +100,13 @@ struct ki_json_val* ki_json_val_create_null(void)
     return val;
 }
 
+/* Is type */
+
+bool ki_json_val_is_type(const struct ki_json_val* val, enum KI_JSON_VAL_TYPE type)
+{
+    return (val != NULL) ? (val->type == type) : false;
+}
+
 /* Special setters */
 
 // NOTE 1: ki_json_value must be of type KI_JSON_VAL_STRING.
