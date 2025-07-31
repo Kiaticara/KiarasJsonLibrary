@@ -107,6 +107,37 @@ bool ki_json_val_is_type(const struct ki_json_val* val, enum KI_JSON_VAL_TYPE ty
     return (val != NULL) ? (val->type == type) : false;
 }
 
+bool ki_json_val_is_object(const struct ki_json_val* val)
+{
+    return ki_json_val_is_type(val, KI_JSON_VAL_OBJECT);
+}
+
+bool ki_json_val_is_array(const struct ki_json_val* val)
+{
+    return ki_json_val_is_type(val, KI_JSON_VAL_ARRAY);
+}
+
+bool ki_json_val_is_string(const struct ki_json_val* val)
+{
+    return ki_json_val_is_type(val, KI_JSON_VAL_STRING);
+}
+
+bool ki_json_val_is_number(const struct ki_json_val* val)
+{
+    return ki_json_val_is_type(val, KI_JSON_VAL_NUMBER);
+}
+
+bool ki_json_val_is_bool(const struct ki_json_val* val)
+{
+    return ki_json_val_is_type(val, KI_JSON_VAL_BOOL);
+}
+
+// NOTE: Checks for the json val null type, not for NULL.
+bool ki_json_val_is_null(const struct ki_json_val* val)
+{
+    return ki_json_val_is_type(val, KI_JSON_VAL_NULL);
+}
+
 /* Special setters */
 
 // NOTE 1: ki_json_value must be of type KI_JSON_VAL_STRING.
