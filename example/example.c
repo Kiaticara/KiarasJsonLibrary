@@ -33,6 +33,8 @@ static void print_val(struct ki_json_val* val)
 
 int main(void)
 {
+    //this is more for testing than an actual example
+
     //TODO: example should do null checks for json objects & nodes
     
     printf("creating json object\n");
@@ -66,6 +68,8 @@ int main(void)
     printf("destroying json object val\n");
     ki_json_val_free(val_object);
 
+    enum ki_json_err_type err_type = KI_JSON_ERR_INTERNAL;
+
     struct json_reader test_reader = {0};
     reader_init(&test_reader, "\"test lol lol\"\"can't see me yet!\"\"tab\\tta\\nb\\t\"\"aa\\u00AEabc\"truefalse true2.234-99.92.2", 87);
 
@@ -74,14 +78,16 @@ int main(void)
     //read 5 strings, 5th string will be fail as it has no start quote
     for (int i = 0; i < 5; i++)
     {
-        if (parse_string(&test_reader, &string))
+        err_type = parse_string(&test_reader, &string);
+        
+        if (err_type == KI_JSON_ERR_NONE)
         {
             printf("read string %i: %s (length = %zu) (offset = %zu)\n", i + 1, string, strlen(string), test_reader.offset);
             free(string);
         }
         else
         {
-            printf("read string %i failed (offset = %zu)\n", i + 1, test_reader.offset);
+            printf("read string %i failed (offset = %zu) (err: %s)\n", i + 1, test_reader.offset, ki_json_err_get_message(err_type));
         }
     }
 
@@ -89,28 +95,34 @@ int main(void)
     bool boolean = false;
     for (int i = 0; i < 3; i++)
     {
-        if (parse_boolean(&test_reader, &boolean))
+        err_type = parse_boolean(&test_reader, &boolean);
+
+        if (err_type == KI_JSON_ERR_NONE)
             printf("read bool %i: %i\n", i + 1, boolean);
         else
-            printf("read bool %i failed\n", i + 1);
+            printf("read bool %i failed (err: %s)\n", i + 1, ki_json_err_get_message(err_type));
     }
 
     printf("skipping whitespace...\n");
 
     reader_skip_whitespace(&test_reader);
 
-    if (parse_boolean(&test_reader, &boolean))
+    err_type = parse_boolean(&test_reader, &boolean);
+
+    if (err_type == KI_JSON_ERR_NONE)
         printf("read bool %i: %i\n", 4, boolean);
     else
-        printf("read bool %i failed\n", 4);
+        printf("read bool %i failed (err: %s)\n", 4, ki_json_err_get_message(err_type));
 
     double number = 0.0;
     for (int i = 0; i < 3; i++)
     {
-        if (parse_number(&test_reader, &number))
+        err_type = parse_number(&test_reader, &number);
+
+        if (err_type == KI_JSON_ERR_NONE)
             printf("read number %i: %f\n", i + 1, number);
         else
-            printf("read number %i failed\n", i + 1);
+            printf("read number %i failed (err: %s)\n", i + 1, ki_json_err_get_message(err_type));
     }
 
     reader_fini(&test_reader);
@@ -120,21 +132,23 @@ int main(void)
     //second: 2 byte Latin Capital Letter Esh and 3 byte Latin Small Letter Y with loop and another 2 byte Latin Capital Letter Esh
 
     struct json_reader reader2 = {0};
-    reader_init(&reader2, "\"aa\\u00AEabc\\u00A5\"\"\\u01A9\\u1EFF\\u01A9\"", 39);
+    reader_init(&reader2, "\"aa\\u00AEabc\\u00A5\"\"\\u01A9\\u1EFF\\u01A9\"\"\"", 42);
     
     string = NULL;
 
     //read 3 strings, after 2nd will fail
     for (int i = 0; i < 5; i++)
     {
-        if (parse_string(&reader2, &string))
+        err_type = parse_string(&reader2, &string);
+
+        if (err_type == KI_JSON_ERR_NONE)
         {
             printf("read string %i: %s (length = %zu) (offset = %zu)\n", i + 1, string, strlen(string), reader2.offset);
             free(string);
         }
         else
         {
-            printf("read string %i failed (offset = %zu)\n", i + 1, reader2.offset);
+            printf("read string %i failed (offset = %zu) (err: %s)\n", i + 1, reader2.offset, ki_json_err_get_message(err_type));
         }
     }
 
@@ -154,6 +168,9 @@ int main(void)
     }
     else 
     {
+        printf("err type: %i\n", err.type);
+        printf("err msg: %s\n", ki_json_err_get_message(err.type));
+        printf("err pos: %zu\n", err.pos);
         printf("failed to parse array...\n");
     }
 
