@@ -45,7 +45,7 @@ struct ki_json_val* ki_json_array_at(struct ki_json_array* array, size_t index)
 {
     assert(array);
 
-    if (index < 0 || index >= array->count)
+    if (index >= array->count)
         return NULL;
 
     return array->values[index];
@@ -139,7 +139,7 @@ enum ki_json_err_type ki_json_array_insert(struct ki_json_array* array, struct k
 {
     //is index out-of-bounds?
     //allow inserting at array->count => at end of json array
-    if (index < 0 || index > array->count)
+    if (index > array->count)
         return KI_JSON_ERR_OUT_OF_BOUNDS;
 
     //if need to expand json array, but failed to do so
@@ -368,7 +368,7 @@ bool ki_json_array_set_bool(struct ki_json_array* array, size_t index, bool bool
 // Returns true on success, false on fail.
 bool ki_json_array_remove_at(struct ki_json_array* array, size_t index)
 {
-    if (index < 0 || index >= array->count)
+    if (index >= array->count)
         return false;
 
     ki_json_val_free(array->values[index]);

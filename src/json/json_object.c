@@ -11,7 +11,7 @@
 // Returns true on success, false on fail.
 static bool ki_json_object_free_pair_index(struct ki_json_object* object, size_t index)
 {
-    if (index < 0 || index >= object->count)
+    if (index >= object->count)
         return false;
 
     free(object->names[index]);
