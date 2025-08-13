@@ -361,6 +361,7 @@ static int escape_sequence_to_utf8(const char* string, const char* string_end, u
 /* Parsing */
 
 // Checks whether reader can read in a string value.
+// Length includes quotation marks.
 static enum ki_json_err_type has_next_string_val(struct json_reader* reader, size_t* length)
 {
     if (reader == NULL)
@@ -418,10 +419,11 @@ static enum ki_json_err_type parse_string(struct json_reader* reader, char** str
     //TODO: don't use print buffer, resulting string will always be smaller or the same length as read string
     
     print_buffer_reset(&reader->string_buffer);
+
+    const char* end = reader_buffer_at(reader, length - 1);
     
     reader->offset++; //skip first "
 
-    const char* end = reader_buffer_at(reader, length - 1);
     char character = '\0';
 
     //NOTE: only escaped utf8 characters are added in a single iteration, others are done byte per byte
