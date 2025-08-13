@@ -102,7 +102,7 @@ struct ki_json_val* ki_json_val_create_null(void)
 
 /* Is type */
 
-bool ki_json_val_is_type(const struct ki_json_val* val, enum KI_JSON_VAL_TYPE type)
+bool ki_json_val_is_type(const struct ki_json_val* val, enum ki_json_val_type type)
 {
     return (val != NULL) ? (val->type == type) : false;
 }
