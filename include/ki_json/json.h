@@ -8,6 +8,7 @@
 
 /* Structs & enums */
 
+// TODO: rename enum name to lowercase
 enum KI_JSON_VAL_TYPE
 {
     KI_JSON_VAL_NULL = 0, //nothing, NULL
@@ -278,6 +279,15 @@ struct ki_json_val* ki_json_val_create_from_bool(bool boolean);
 // Creates a json value representing null.
 // Returns NULL on fail.
 struct ki_json_val* ki_json_val_create_null(void);
+
+bool ki_json_val_is_type(const struct ki_json_val* val, enum KI_JSON_VAL_TYPE type);
+bool ki_json_val_is_object(const struct ki_json_val* val);
+bool ki_json_val_is_array(const struct ki_json_val* val);
+bool ki_json_val_is_string(const struct ki_json_val* val);
+bool ki_json_val_is_number(const struct ki_json_val* val);
+bool ki_json_val_is_bool(const struct ki_json_val* val);
+// NOTE: Checks for the json val null type, not for NULL.
+bool ki_json_val_is_null(const struct ki_json_val* val);
 
 // NOTE 1: ki_json_value must be of type KI_JSON_VAL_STRING.
 // NOTE 2: String is copied.
