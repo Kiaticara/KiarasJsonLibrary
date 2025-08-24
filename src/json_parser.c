@@ -441,6 +441,8 @@ static enum ki_json_err_type parse_string(struct json_reader* reader, char** str
         }
         else 
         {
+            sequence_length = 1;
+
             result[result_index] = character;
             result_index++;
         }
