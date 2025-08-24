@@ -403,20 +403,20 @@ static enum ki_json_err_type parse_string(struct json_reader* reader, char** str
     
     reader->offset++; //skip first "
     
-    char character = '\0';
+    const char* pos = reader_buffer_at(reader, 0);
     size_t result_index = 0;
     
     //convert escape sequences in input string
     //NOTE: only escaped utf8 characters are added in a single iteration, others are done byte per byte
-    while (reader_peek(reader, &character) && character != '\"' && result_index < result_max_length)
+    while (pos < end && result_index < result_max_length)
     {
         size_t sequence_length = 0;
 
         //start of an escape sequence
-        if (character == '\\')
+        if (pos[0] == '\\')
         {
             unsigned char bytes[CHARACTER_MAX_BUFFER_SIZE]; //character bytes, max. 4 bytes (utf8)
-            size_t num_bytes = escape_sequence_to_utf8(reader_buffer_at(reader, 0), end, bytes, CHARACTER_MAX_BUFFER_SIZE, &sequence_length);
+            size_t num_bytes = escape_sequence_to_utf8(pos, end, bytes, CHARACTER_MAX_BUFFER_SIZE, &sequence_length);
 
             //invalid escape sequence or failed to parse it
             if (num_bytes == 0)
@@ -443,10 +443,11 @@ static enum ki_json_err_type parse_string(struct json_reader* reader, char** str
         {
             sequence_length = 1;
 
-            result[result_index] = character;
+            result[result_index] = pos[0];
             result_index++;
         }
 
+        pos += sequence_length;
         reader->offset += sequence_length;
     }
 
