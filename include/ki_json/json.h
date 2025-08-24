@@ -4,6 +4,11 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 // Contains what is needed to represent json trees, along with the functions neccessary for creating & interacting with them
 
 /* Structs & enums */
@@ -294,6 +299,10 @@ bool ki_json_val_is_null(const struct ki_json_val* val);
 bool ki_json_val_set_string(struct ki_json_val* val, const char* string);
 
 void ki_json_val_free(struct ki_json_val* val);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //KI_JSON_JSON_H
 

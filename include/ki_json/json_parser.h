@@ -7,6 +7,11 @@
 
 #include "ki_json/json.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 struct ki_json_parser_err
 {
     enum ki_json_err_type type;
@@ -23,5 +28,9 @@ struct ki_json_val* ki_json_parse_string(const char* string, struct ki_json_pars
 // Val returned must be freed using ki_json_val_free() when done.
 // Returns NULL on fail and outs error to err.
 struct ki_json_val* ki_json_nparse_string(const char* string, size_t n, struct ki_json_parser_err* err);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //KI_JSON_PARSER_H
