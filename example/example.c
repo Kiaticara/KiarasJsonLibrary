@@ -134,7 +134,7 @@ int main(void)
 
     struct json_reader reader2 = {
         .json_string = "\"aa\\u00AEabc\\u00A5\"\"\\u01A9\\u1EFF\\u01A9\"\"\"",
-        .length = 42,
+        .length = 41,
         .offset = 0
     };
     
