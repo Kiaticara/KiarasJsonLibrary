@@ -70,8 +70,11 @@ int main(void)
 
     enum ki_json_err_type err_type = KI_JSON_ERR_INTERNAL;
 
-    struct json_reader test_reader = {0};
-    reader_init(&test_reader, "\"test lol lol\"\"can't see me yet!\"\"tab\\tta\\nb\\t\"\"aa\\u00AEabc\"truefalse true2.234-99.92.2", 87);
+    struct json_reader test_reader = {
+        .json_string = "\"test lol lol\"\"can't see me yet!\"\"tab\\tta\\nb\\t\"\"aa\\u00AEabc\"truefalse true2.234-99.92.2",
+        .length = 87,
+        .offset = 0
+    };
 
     char* string = NULL;
 
@@ -125,14 +128,15 @@ int main(void)
             printf("read number %i failed (err: %s)\n", i + 1, ki_json_err_get_message(err_type));
     }
 
-    reader_fini(&test_reader);
-
     //unicode code point testing
     //first: 2 byte trademark character & 2 byte yen sign
     //second: 2 byte Latin Capital Letter Esh and 3 byte Latin Small Letter Y with loop and another 2 byte Latin Capital Letter Esh
 
-    struct json_reader reader2 = {0};
-    reader_init(&reader2, "\"aa\\u00AEabc\\u00A5\"\"\\u01A9\\u1EFF\\u01A9\"\"\"", 42);
+    struct json_reader reader2 = {
+        .json_string = "\"aa\\u00AEabc\\u00A5\"\"\\u01A9\\u1EFF\\u01A9\"\"\"",
+        .length = 42,
+        .offset = 0
+    };
     
     string = NULL;
 
@@ -151,8 +155,6 @@ int main(void)
             printf("read string %i failed (offset = %zu) (err: %s)\n", i + 1, reader2.offset, ki_json_err_get_message(err_type));
         }
     }
-
-    reader_fini(&reader2);
 
     struct ki_json_parser_err err = {0};
     struct ki_json_val* val_array = ki_json_parse_string("[ \t[  \"test\", 5.0, true ]\t, [  \"test\", 5.0, true ], {     \t }  , [ ] ]", &err);
