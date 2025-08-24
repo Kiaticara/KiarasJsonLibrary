@@ -140,7 +140,7 @@ int main(void)
     
     string = NULL;
 
-    //read 3 strings, after 2nd will fail
+    //read 3 strings
     for (int i = 0; i < 5; i++)
     {
         err_type = parse_string(&reader2, &string);
