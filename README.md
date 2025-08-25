@@ -1,3 +1,7 @@
+# ⚠️ MIGRATED TO CODEBERG.ORG ⚠️
+
+https://codeberg.org/Kiaticara/KiarasJsonLibrary.git
+
 # Kiara's Json Library (ki_json)
 
 A library for parsing & generating json strings.
