@@ -13,9 +13,6 @@ set(
     "src/json/json_err.c"
     "src/json_parser.c"
     "src/json_generator.c"
-    
-    "src/print_buffer.c"
-    "src/print_buffer.h"
 )
 
 set(LIB_INCLUDE include)
