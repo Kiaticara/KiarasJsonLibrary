@@ -7,7 +7,6 @@
 #include <string.h>
 #include <assert.h>
 
-#include "print_buffer.h"
 #include "ki_json/json.h"
 
 // utf8 characters have 4 bytes max
@@ -26,9 +25,6 @@ struct json_reader
     size_t length; 
     // Current reader index offset
     size_t offset;
-
-    //Print buffer used for string values
-    struct print_buffer string_buffer;
 };
 
 // Returns true if character is a space, horizontal tab, line feed/break or carriage return, else false.
@@ -39,32 +35,11 @@ static bool char_is_whitespace(char character)
 
 /* Reader */
 
-static bool reader_init(struct json_reader* reader, const char* json, size_t length)
-{
-    if (reader == NULL)
-        return false;
-
-    if (!print_buffer_init(&reader->string_buffer, 32))
-        return false;
-
-    reader->json_string = json;
-    reader->length = length;
-    reader->offset = 0;
-
-    return true;
-}
-
-static void reader_fini(struct json_reader* reader)
-{
-    if (reader == NULL)
-        return;
-
-    print_buffer_fini(&reader->string_buffer);
-}
-
 // Can reader access char at index pos offsetted by the reader's offset?
 static bool reader_can_access(struct json_reader* reader, size_t pos)
 {
+    assert(reader);
+
     if (reader == NULL)
         return false;
     
@@ -84,6 +59,8 @@ static char reader_char_at(struct json_reader* reader, size_t pos)
 
 static bool reader_peek(struct json_reader* reader, char* character)
 {
+    assert(reader && character);
+
     if (reader == NULL || !reader_can_access(reader, 0))
     {
         if (character != NULL)
@@ -361,6 +338,7 @@ static int escape_sequence_to_utf8(const char* string, const char* string_end, u
 /* Parsing */
 
 // Checks whether reader can read in a string value.
+// Returns KI_JSON_ERR_NONE if yes.
 // Length includes quotation marks.
 static enum ki_json_err_type has_next_string_val(struct json_reader* reader, size_t* length)
 {
@@ -406,71 +384,79 @@ static enum ki_json_err_type parse_string(struct json_reader* reader, char** str
 {
     assert(reader && string);
 
-    //get length and check whether we even have a string val
-    size_t length = 0;
+    //get input length and check whether we even have a string val
+    size_t input_length = 0;
 
-    enum ki_json_err_type err_type = has_next_string_val(reader, &length);
+    enum ki_json_err_type err_type = has_next_string_val(reader, &input_length);
 
     if (err_type != KI_JSON_ERR_NONE)
         return err_type;
 
-    //convert string value
-
-    //TODO: don't use print buffer, resulting string will always be smaller or the same length as read string
+    //result will always be smaller than or the same size as the string value (excluding start + end quote) in the input json
+    size_t result_max_length = input_length - 2;
+    char* result = calloc(result_max_length + 1, sizeof(*result)); //include space for null-terminator
     
-    print_buffer_reset(&reader->string_buffer);
-
-    const char* end = reader_buffer_at(reader, length - 1);
+    if (result == NULL)
+        return KI_JSON_ERR_MEMORY;
+    
+    const char* end = reader_buffer_at(reader, input_length - 1);
     
     reader->offset++; //skip first "
-
-    char character = '\0';
-
+    
+    const char* pos = reader_buffer_at(reader, 0);
+    size_t result_index = 0;
+    
+    //convert escape sequences in input string
     //NOTE: only escaped utf8 characters are added in a single iteration, others are done byte per byte
-    while (reader_peek(reader, &character) && character != '\"')
+    while (pos < end && result_index < result_max_length)
     {
         size_t sequence_length = 0;
 
         //start of an escape sequence
-        if (character == '\\')
+        if (pos[0] == '\\')
         {
             unsigned char bytes[CHARACTER_MAX_BUFFER_SIZE]; //character bytes, max. 4 bytes (utf8)
-            size_t num_bytes = escape_sequence_to_utf8(reader_buffer_at(reader, 0), end, bytes, CHARACTER_MAX_BUFFER_SIZE, &sequence_length);
+            size_t num_bytes = escape_sequence_to_utf8(pos, end, bytes, CHARACTER_MAX_BUFFER_SIZE, &sequence_length);
 
             //invalid escape sequence or failed to parse it
             if (num_bytes == 0)
+            {
+                free(result);
                 return KI_JSON_ERR_INVALID_ESCAPE_SEQUENCE;
+            }
 
-            if (!print_buffer_append_mem(&reader->string_buffer, bytes, num_bytes))
-                return KI_JSON_ERR_MEMORY;
+            //should never occur, but in just case
+            if (result_index + num_bytes >= result_max_length)
+            {
+                free(result);
+                return KI_JSON_ERR_INTERNAL;
+            }
+
+            //add bytes into result
+            for (size_t i = 0; i < num_bytes; i++)
+            {
+                result[result_index] = bytes[i];
+                result_index++;
+            }
         }
         else 
         {
-            if (!print_buffer_append_char(&reader->string_buffer, character))
-                return KI_JSON_ERR_MEMORY;
-
             sequence_length = 1;
+
+            result[result_index] = pos[0];
+            result_index++;
         }
 
-        reader->offset += sequence_length;
+        pos += sequence_length;
+        reader->offset += sequence_length; //also move offset for error handling
     }
+
+    result[result_index] = '\0'; //null-terminate
 
     reader->offset++; //skip last "
 
-    char* new_string = calloc(print_buffer_length(&reader->string_buffer) + 1, sizeof(*new_string));
-
-    //alloc fail
-    if (new_string == NULL)
-        return KI_JSON_ERR_MEMORY;
-
-    if (!print_buffer_copy_to_buffer(&reader->string_buffer, new_string, print_buffer_length(&reader->string_buffer) + 1))
-    {
-        free(new_string);
-        return KI_JSON_ERR_INTERNAL;
-    }
-
     //out
-    *string = new_string;
+    *string = result;
 
     return KI_JSON_ERR_NONE;
 }
@@ -851,15 +837,11 @@ struct ki_json_val* ki_json_nparse_string(const char* string, size_t n, struct k
         return NULL;
     }
 
-    struct json_reader reader = {0};
-
-    if (!reader_init(&reader, string, n))
-    {
-        if (err != NULL)
-            err->type = KI_JSON_ERR_MEMORY;
-
-        return NULL;
-    }
+    struct json_reader reader = {
+        .json_string = string,
+        .length = n,
+        .offset = 0
+    };
 
     //skip byte order mark if necessary
     if (has_next_literal(&reader, "\uFEFF"))
@@ -873,8 +855,6 @@ struct ki_json_val* ki_json_nparse_string(const char* string, size_t n, struct k
         err->pos = reader.offset;
         err->type = err_type;
     }
-    
-    reader_fini(&reader);
 
     if (err_type != KI_JSON_ERR_NONE)
     {
